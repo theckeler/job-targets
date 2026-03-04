@@ -98,7 +98,7 @@ function ShareForm() {
       body: JSON.stringify({
         company_id: selectedId,
         url: jobUrl || null,
-        title: title || "Untitled",
+        title: title || null,
         salary_range: salary || null,
         date_applied: new Date().toISOString().split("T")[0],
         status: "new",
