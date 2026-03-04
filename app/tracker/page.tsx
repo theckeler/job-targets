@@ -9,7 +9,7 @@ const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
 type Status = (typeof STATUS_CYCLE)[number];
 
 const STATUS_STYLES: Record<Status, string> = {
-  new: "bg-slate-100 text-slate-500",
+  new: "bg-slate-100 text-[#64748b]",
   interested: "bg-violet-100 text-violet-700",
   submitted: "bg-emerald-100 text-emerald-700",
   skip: "bg-red-100 text-red-400",
@@ -155,32 +155,33 @@ export default function TrackerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <p className="text-slate-500 text-sm font-mono">loading...</p>
+      <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center">
+        <p className="text-[#64748b] text-sm font-mono">loading...</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="min-h-screen bg-slate-950 pb-24">
+      <div className="min-h-screen bg-[#0a0f1e] pb-24">
 
         {/* Header */}
-        <div className="bg-slate-950 border-b border-slate-800 sticky top-0 z-20 px-4 pt-safe pt-3 pb-3">
+        <div className="bg-[#0a0f1e] border-b border-[#1e293b] sticky top-0 z-20 px-4 pt-safe pt-3 pb-3">
           {/* Title row */}
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-sm font-semibold text-slate-100 tracking-tight">
+            <h1 className="text-sm font-semibold text-[#f1f5f9] tracking-tight">
               Job Tracker
             </h1>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-slate-500">{totalJobs} jobs</span>
+              <span className="text-xs font-mono text-[#64748b]">{totalJobs} jobs</span>
+              <span className="text-[#334155]">·</span>
               <span className="text-xs font-mono text-emerald-500">{submittedCount} out</span>
             </div>
           </div>
 
           {/* Search */}
           <Input
-            className="h-9 text-sm bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 mb-3"
+            className="h-9 text-sm bg-[#0f172a] border-[#334155] text-[#f1f5f9] placeholder:text-[#64748b] mb-3"
             placeholder="Search companies..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -195,13 +196,13 @@ export default function TrackerPage() {
                 className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
                   tierFilter === t
                     ? "bg-slate-100 text-slate-900"
-                    : "bg-slate-800 text-slate-400 active:bg-slate-700"
+                    : "bg-[#1e293b] text-[#94a3b8] active:bg-[#334155]"
                 }`}
               >
                 {t === "all" ? "All" : TIER_LABELS[t]}
               </button>
             ))}
-            <div className="w-px shrink-0 bg-slate-800 mx-0.5" />
+            <div className="w-px shrink-0 bg-[#1e293b] mx-0.5" />
             {(["all", "new", "interested", "submitted", "skip"] as const).map((s) => (
               <button
                 key={s}
@@ -209,7 +210,7 @@ export default function TrackerPage() {
                 className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
                   statusFilter === s
                     ? "bg-slate-100 text-slate-900"
-                    : "bg-slate-800 text-slate-400 active:bg-slate-700"
+                    : "bg-[#1e293b] text-[#94a3b8] active:bg-[#334155]"
                 }`}
               >
                 {s === "all" ? "Any status" : s}
@@ -221,7 +222,7 @@ export default function TrackerPage() {
         {/* Company list */}
         <div className="px-3 py-3 space-y-1.5">
           {filtered.length === 0 && (
-            <p className="text-center py-16 text-slate-600 text-sm">
+            <p className="text-center py-16 text-[#475569] text-sm">
               No companies match.
             </p>
           )}
@@ -232,34 +233,34 @@ export default function TrackerPage() {
             return (
               <div
                 key={company.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden"
+                className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden"
               >
                 {/* Company row */}
                 <div
-                  className="flex items-center gap-3 px-4 py-3.5 active:bg-slate-800 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3.5 active:bg-[#1e293b] transition-colors"
                   onClick={() => toggleExpand(company.id)}
                 >
                   <span className={`w-2 h-2 rounded-full shrink-0 ${TIER_DOT[company.tier]}`} />
 
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-slate-100 block truncate">
+                    <span className="text-sm font-medium text-[#f1f5f9] block truncate">
                       {company.name}
                     </span>
                     {company.tag && (
-                      <span className="text-xs text-slate-500 block truncate">
+                      <span className="text-xs text-[#64748b] block truncate">
                         {company.tag}
                       </span>
                     )}
                   </div>
 
                   {company.jobs.length > 0 && (
-                    <span className="text-xs font-mono text-slate-500 shrink-0">
+                    <span className="text-xs font-mono text-[#64748b] shrink-0">
                       {company.jobs.length}
                     </span>
                   )}
 
                   <button
-                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 active:bg-slate-700 text-base leading-none"
+                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1e293b] text-[#94a3b8] active:bg-[#334155] text-base leading-none"
                     onClick={(e) => {
                       e.stopPropagation();
                       openSheet(company);
@@ -268,17 +269,17 @@ export default function TrackerPage() {
                     +
                   </button>
 
-                  <span className={`text-slate-600 text-xs transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180" : ""}`}>
+                  <span className={`text-[#475569] text-xs transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180" : ""}`}>
                     ▼
                   </span>
                 </div>
 
                 {/* Expanded jobs */}
                 {isExpanded && (
-                  <div className="border-t border-slate-800">
+                  <div className="border-t border-[#1e293b]">
                     {company.jobs.length === 0 ? (
                       <div className="px-4 py-3 flex items-center justify-between">
-                        <span className="text-xs text-slate-600">No jobs yet.</span>
+                        <span className="text-xs text-[#475569]">No jobs yet.</span>
                         <button
                           className="text-xs text-blue-500"
                           onClick={() => openSheet(company)}
@@ -296,18 +297,18 @@ export default function TrackerPage() {
                                   href={job.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm text-slate-300 block truncate"
+                                  className="text-sm text-[#cbd5e1] block truncate"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   {job.title || job.url}
                                 </a>
                               ) : (
-                                <span className="text-sm text-slate-300 block truncate">
+                                <span className="text-sm text-[#cbd5e1] block truncate">
                                   {job.title}
                                 </span>
                               )}
                               {job.salary_range && (
-                                <span className="text-xs text-slate-500 font-mono">
+                                <span className="text-xs text-[#64748b] font-mono">
                                   {job.salary_range}
                                 </span>
                               )}
@@ -333,12 +334,12 @@ export default function TrackerPage() {
 
                     {/* Careers link */}
                     {company.careers_url && (
-                      <div className="px-4 py-2.5 border-t border-slate-800">
+                      <div className="px-4 py-2.5 border-t border-[#1e293b]">
                         <a
                           href={company.careers_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-slate-500 active:text-blue-400"
+                          className="text-xs text-[#64748b] active:text-blue-400"
                           onClick={(e) => e.stopPropagation()}
                         >
                           careers page →
@@ -362,27 +363,27 @@ export default function TrackerPage() {
             onClick={closeSheet}
           />
           {/* Sheet */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900 border-t border-slate-700 rounded-t-2xl px-5 pb-safe pb-8 pt-5">
-            <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-5" />
-            <p className="text-xs text-slate-500 mb-4 font-medium uppercase tracking-wide">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0f172a] border-t border-[#334155] rounded-t-2xl px-5 pb-safe pb-8 pt-5">
+            <div className="w-10 h-1 bg-[#334155] rounded-full mx-auto mb-5" />
+            <p className="text-xs text-[#64748b] mb-4 font-medium uppercase tracking-wide">
               {sheet.companyName}
             </p>
             <div className="space-y-3">
               <Input
                 ref={urlInputRef}
-                className="h-11 text-sm bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                className="h-11 text-sm bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#64748b]"
                 placeholder="Job URL (paste here)"
                 value={newJobUrl}
                 onChange={(e) => setNewJobUrl(e.target.value)}
               />
               <Input
-                className="h-11 text-sm bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                className="h-11 text-sm bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#64748b]"
                 placeholder="Title (optional)"
                 value={newJobTitle}
                 onChange={(e) => setNewJobTitle(e.target.value)}
               />
               <Input
-                className="h-11 text-sm bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                className="h-11 text-sm bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#64748b]"
                 placeholder="Salary range (optional)"
                 value={newJobSalary}
                 onChange={(e) => setNewJobSalary(e.target.value)}
@@ -398,7 +399,7 @@ export default function TrackerPage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-11 px-5 text-slate-500"
+                  className="h-11 px-5 text-[#64748b]"
                   onClick={closeSheet}
                 >
                   Cancel
