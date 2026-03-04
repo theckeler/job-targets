@@ -6,8 +6,14 @@ const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Job Tracker',
-  description: 'Private',
+  description: 'Private job tracker',
   robots: 'noindex, nofollow',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Jobs',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
