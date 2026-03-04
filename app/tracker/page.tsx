@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { CompanyWithJobs, Job } from "@/lib/db";
-import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
+import { Input } from "@/src/components/ui/input";
+import { fetchData } from "@/util/fetchData";
+import { SlidersHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
 type Status = (typeof STATUS_CYCLE)[number];
 
 const STATUS_STYLES: Record<Status, string> = {
-  new: "bg-slate-100 text-[#64748b]",
-  interested: "bg-violet-100 text-violet-700",
-  submitted: "bg-emerald-100 text-emerald-700",
-  skip: "bg-red-100 text-red-400",
+  new: "text-purple-400 border-purple-400",
+  interested: "text-yellow-400 border-yellow-400",
+  submitted: "text-emerald-400 border-emerald-400",
+  skip: "text-red-400 border-red-400",
 };
 
 const TIER_DOT: Record<number, string> = {
@@ -43,6 +45,8 @@ export default function TrackerPage() {
   const [tierFilter, setTierFilter] = useState<number | "all">("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null);
 
   // Add job sheet
   const [sheet, setSheet] = useState<AddJobSheet | null>(null);
@@ -52,16 +56,23 @@ export default function TrackerPage() {
   const [saving, setSaving] = useState(false);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchData = useCallback(async () => {
-    const res = await fetch("/api/companies");
-    const data = await res.json();
-    setCompanies(data);
-    setLoading(false);
-  }, []);
+  async function loadCompanies(ignore: boolean) {
+    const data = await fetchData("/api/companies");
+    if (!ignore) {
+      setCompanies(data);
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    let ignore = false;
+    (async () => {
+      await loadCompanies(ignore);
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (sheet) {
@@ -71,13 +82,15 @@ export default function TrackerPage() {
 
   const filtered = companies
     .filter((c) => {
-      if (tierFilter !== "all" && c.tier !== tierFilter) return false;
+      if (tierFilter !== "all" && Number(c.tier) !== tierFilter) return false;
       if (statusFilter !== "all") {
         if (!c.jobs.some((j) => j.status === statusFilter)) return false;
       }
       if (search) {
         const q = search.toLowerCase();
-        return c.name.toLowerCase().includes(q) || c.tag?.toLowerCase().includes(q);
+        return (
+          c.name.toLowerCase().includes(q) || c.tag?.toLowerCase().includes(q)
+        );
       }
       return true;
     })
@@ -86,7 +99,7 @@ export default function TrackerPage() {
   const totalJobs = companies.reduce((n, c) => n + c.jobs.length, 0);
   const submittedCount = companies.reduce(
     (n, c) => n + c.jobs.filter((j) => j.status === "submitted").length,
-    0
+    0,
   );
 
   async function cycleJobStatus(job: Job) {
@@ -97,12 +110,14 @@ export default function TrackerPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: job.id, status: next }),
     });
-    fetchData();
+    loadCompanies(false);
   }
 
-  async function deleteJob(jobId: number) {
-    await fetch(`/api/jobs?id=${jobId}`, { method: "DELETE" });
-    fetchData();
+  async function deleteJob() {
+    if (!deleteConfirm) return;
+    await fetch(`/api/jobs?id=${deleteConfirm.id}`, { method: "DELETE" });
+    setDeleteConfirm(null);
+    loadCompanies(false);
   }
 
   async function addJob() {
@@ -126,9 +141,8 @@ export default function TrackerPage() {
     setNewJobSalary("");
     setSheet(null);
     setSaving(false);
-    // Auto-expand the company
     setExpandedIds((prev) => new Set(prev).add(sheet.companyId));
-    fetchData();
+    loadCompanies(false);
   }
 
   function openSheet(company: CompanyWithJobs) {
@@ -161,68 +175,40 @@ export default function TrackerPage() {
     );
   }
 
+  const hasActiveFilter =
+    tierFilter !== "all" || statusFilter !== "all" || search !== "";
+
   return (
     <>
       <div className="min-h-screen bg-[#0a0f1e] pb-24">
-
         {/* Header */}
-        <div className="bg-[#0a0f1e] border-b border-[#1e293b] sticky top-0 z-20 px-4 pt-safe pt-3 pb-3">
+        <div className="bg-sky-900 p-2">
           {/* Title row */}
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-sm font-semibold text-[#f1f5f9] tracking-tight">
-              Job Tracker
-            </h1>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-[#64748b]">{totalJobs} jobs</span>
-              <span className="text-[#334155]">·</span>
-              <span className="text-xs font-mono text-emerald-500">{submittedCount} out</span>
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1 flex-col">
+              <h1 className="text-lg font-bold text-sky-200 tracking-tight leading-none">
+                Job Tracker
+              </h1>
+              <div className="flex items-center gap-2 text-sky-300">
+                <span className="text-xs">{totalJobs} tracked</span>
+                <span className="text-xs">{submittedCount} submitted</span>
+              </div>
             </div>
-          </div>
-
-          {/* Search */}
-          <Input
-            className="h-9 text-sm bg-[#0f172a] border-[#334155] text-[#f1f5f9] placeholder:text-[#64748b] mb-3"
-            placeholder="Search companies..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          {/* Tier pills */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-            {(["all", 1, 2, 3, 4, 5] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTierFilter(t)}
-                className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                  tierFilter === t
-                    ? "bg-slate-100 text-slate-900"
-                    : "bg-[#1e293b] text-[#94a3b8] active:bg-[#334155]"
-                }`}
-              >
-                {t === "all" ? "All" : TIER_LABELS[t]}
-              </button>
-            ))}
-            <div className="w-px shrink-0 bg-[#1e293b] mx-0.5" />
-            {(["all", "new", "interested", "submitted", "skip"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                  statusFilter === s
-                    ? "bg-slate-100 text-slate-900"
-                    : "bg-[#1e293b] text-[#94a3b8] active:bg-[#334155]"
-                }`}
-              >
-                {s === "all" ? "Any status" : s}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setFilterOpen(true)}
+              // style={{ minWidth: 48, minHeight: 48 }}
+              className={`relative flex items-center justify-center rounded bg-black border border-black p-2 ${hasActiveFilter ? "border-red-500 text-red-500" : "text-sky-300 border-transparent"}`}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
           </div>
         </div>
 
         {/* Company list */}
-        <div className="px-3 py-3 space-y-1.5">
+        <div className="p-2 space-y-2">
           {filtered.length === 0 && (
-            <p className="text-center py-16 text-[#475569] text-sm">
+            <p className="text-center py-20 text-[#334155] text-sm font-mono">
               No companies match.
             </p>
           )}
@@ -231,119 +217,129 @@ export default function TrackerPage() {
             const isExpanded = expandedIds.has(company.id);
 
             return (
-              <div
-                key={company.id}
-                className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden"
-              >
+              <div key={company.id} className="bg-slate-900 rounded">
                 {/* Company row */}
                 <div
-                  className="flex items-center gap-3 px-4 py-3.5 active:bg-[#1e293b] transition-colors"
+                  className="flex justify-between items-center gap-2 px-2 py-3 cursor-pointer"
                   onClick={() => toggleExpand(company.id)}
                 >
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${TIER_DOT[company.tier]}`} />
+                  <div className="flex gap-2 items-center">
+                    <span
+                      className={`w-4 h-1 rounded-full shrink-0 ${TIER_DOT[company.tier]}`}
+                    />
 
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-[#f1f5f9] block truncate">
+                    <div className="font-semibold text-white truncate leading-tight">
                       {company.name}
-                    </span>
-                    {company.tag && (
-                      <span className="text-xs text-[#64748b] block truncate">
-                        {company.tag}
-                      </span>
-                    )}
+                    </div>
                   </div>
 
-                  {company.jobs.length > 0 && (
-                    <span className="text-xs font-mono text-[#64748b] shrink-0">
-                      {company.jobs.length}
-                    </span>
-                  )}
+                  <div className="flex gap-2">
+                    {company.jobs.length > 0 && (
+                      <button
+                        // className="text-xs font-mono text-white/60 shrink-0 p-2 border border-white/20 rounded min-w-12 flex items-center justify-center"
+                        className={`min-w-12 p-2 select-none rounded text-xs ${isExpanded ? "border border-red-500 text-red-500" : "border border-white/30 text-white/30"}`}
+                      >
+                        {company.jobs.length}
+                      </button>
+                    )}
 
-                  <button
-                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1e293b] text-[#94a3b8] active:bg-[#334155] text-base leading-none"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSheet(company);
-                    }}
-                  >
-                    +
-                  </button>
+                    {company.careers_url && (
+                      <a
+                        href={company.careers_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="shrink-0 min-w-12 flex items-center justify-center text-yellow-500 text-xs border border-yellow-500 rounded p-2"
+                      >
+                        ↗
+                      </a>
+                    )}
 
-                  <span className={`text-[#475569] text-xs transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180" : ""}`}>
-                    ▼
-                  </span>
+                    <button
+                      type="button"
+                      className="shrink-0 flex items-center justify-center rounded min-w-12 leading-none text-green-300 border border-green-300 p-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openSheet(company);
+                      }}
+                    >
+                      +
+                    </button>
+
+                    <button
+                      className={`min-w-12 p-2 select-none rounded text-xs ${isExpanded ? "rotate-180 border border-white/80 text-white/80" : "border border-white/30 text-white/30"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpand(company.id);
+                      }}
+                    >
+                      ▼
+                    </button>
+                  </div>
                 </div>
 
                 {/* Expanded jobs */}
                 {isExpanded && (
                   <div className="border-t border-[#1e293b]">
                     {company.jobs.length === 0 ? (
-                      <div className="px-4 py-3 flex items-center justify-between">
-                        <span className="text-xs text-[#475569]">No jobs yet.</span>
-                        <button
-                          className="text-xs text-blue-500"
+                      <div className="px-4 py-4 flex items-center justify-between">
+                        <span className="text-xs text-[#334155] font-mono">
+                          no jobs logged yet
+                        </span>
+                        {/* <button
+                          className="text-xs text-blue-500 font-medium"
                           onClick={() => openSheet(company)}
                         >
                           Add one
-                        </button>
+                        </button> */}
                       </div>
                     ) : (
-                      <div className="divide-y divide-slate-800">
+                      <div className="divide-y divide-sky-500/50">
                         {company.jobs.map((job) => (
-                          <div key={job.id} className="px-4 py-3 flex items-start gap-3">
-                            <div className="flex-1 min-w-0">
+                          <div
+                            key={job.id}
+                            className="p-2 flex items-start gap-1"
+                          >
+                            <div className="flex-1 min-w-0 gap-1 flex flex-col">
                               {job.url ? (
                                 <a
                                   href={job.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm text-[#cbd5e1] block truncate"
+                                  className="text-sm text-white block truncate font-medium"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   {job.title || job.url}
                                 </a>
                               ) : (
-                                <span className="text-sm text-[#cbd5e1] block truncate">
+                                <span className="text-sm text-white block truncate font-medium">
                                   {job.title}
                                 </span>
                               )}
                               {job.salary_range && (
-                                <span className="text-xs text-[#64748b] font-mono">
+                                <div className="text-xs text-white/60">
                                   {job.salary_range}
-                                </span>
+                                </div>
                               )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <button
+                                type="button"
                                 onClick={() => cycleJobStatus(job)}
-                                className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_STYLES[job.status as Status] ?? STATUS_STYLES.new}`}
+                                className={`text-xs rounded border border-blue-400 font-medium flex items-center px-6 py-2 ${STATUS_STYLES[job.status as Status] ?? STATUS_STYLES.new}`}
                               >
                                 {job.status}
                               </button>
                               <button
-                                onClick={() => deleteJob(job.id)}
-                                className="text-slate-700 active:text-red-400 text-lg leading-none w-6 h-6 flex items-center justify-center"
+                                type="button"
+                                onClick={() => setDeleteConfirm({ id: job.id, title: job.title || job.url || "this job" })}
+                                className="text-red-500 border p-2 rounded border-red-500 flex items-center justify-center min-w-12 text-xs"
                               >
                                 ×
                               </button>
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
-
-                    {/* Careers link */}
-                    {company.careers_url && (
-                      <div className="px-4 py-2.5 border-t border-[#1e293b]">
-                        <a
-                          href={company.careers_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-[#64748b] active:text-blue-400"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          careers page →
-                        </a>
                       </div>
                     )}
                   </div>
@@ -353,6 +349,122 @@ export default function TrackerPage() {
           })}
         </div>
       </div>
+
+      {/* Delete confirm modal */}
+      {deleteConfirm && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/70 z-50 backdrop-blur-sm"
+            onClick={() => setDeleteConfirm(null)}
+          />
+          <div className="fixed z-50 left-4 right-4 top-1/2 -translate-y-1/2 bg-slate-900 border border-slate-700 rounded-2xl p-6">
+            <p className="text-white font-semibold text-base mb-1">Delete job?</p>
+            <p className="text-slate-400 text-sm mb-6 truncate">{deleteConfirm.title}</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={deleteJob}
+                className="flex-1 h-12 rounded-xl bg-red-500 text-white text-sm font-semibold active:bg-red-600"
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 h-12 rounded-xl bg-slate-800 text-slate-300 text-sm font-semibold border border-slate-700 active:bg-slate-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Filter sheet */}
+      {filterOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 z-30 backdrop-blur-sm"
+            onClick={() => setFilterOpen(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0f172a] border-t border-[#1e293b] rounded-t-2xl px-5 pb-safe pb-8 pt-5">
+            <div className="w-10 h-1 bg-[#1e293b] rounded-full mx-auto mb-6" />
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-sm font-semibold text-[#e2e8f0]">Filter</p>
+              {hasActiveFilter && (
+                <button
+                  className="text-xs text-[#475569] font-mono"
+                  onClick={() => {
+                    setTierFilter("all");
+                    setStatusFilter("all");
+                    setSearch("");
+                  }}
+                >
+                  clear all
+                </button>
+              )}
+            </div>
+
+            <Input
+              className="h-11 text-sm bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#475569] rounded-xl mb-5"
+              placeholder="Search companies..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            <p className="text-xs font-mono text-[#475569] uppercase tracking-widest mb-3">
+              Tier
+            </p>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(["all", 1, 2, 3, 4, 5] as const).map((t) => (
+                <button
+                  type="button"
+                  key={t}
+                  onClick={() => setTierFilter(t)}
+                  style={{ minHeight: 48 }}
+                  className={`text-sm px-5 rounded-xl font-medium transition-colors ${
+                    tierFilter === t
+                      ? "bg-[#f1f5f9] text-[#0f172a]"
+                      : "bg-[#1e293b] text-[#64748b] active:bg-[#334155]"
+                  }`}
+                >
+                  {t === "all" ? "All" : TIER_LABELS[t]}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-xs font-mono text-[#475569] uppercase tracking-widest mb-3">
+              Status
+            </p>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(["all", "new", "interested", "submitted", "skip"] as const).map(
+                (s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    style={{ minHeight: 48 }}
+                    className={`text-sm px-5 rounded-xl font-medium transition-colors ${
+                      statusFilter === s
+                        ? "bg-[#f1f5f9] text-[#0f172a]"
+                        : "bg-[#1e293b] text-[#64748b] active:bg-[#334155]"
+                    }`}
+                  >
+                    {s === "all" ? "Any" : s}
+                  </button>
+                ),
+              )}
+            </div>
+
+            <Button
+              className="w-full h-11 font-medium bg-[#f1f5f9] text-[#0f172a]"
+              onClick={() => setFilterOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
+        </>
+      )}
 
       {/* Add job sheet */}
       {sheet && (
