@@ -144,7 +144,7 @@ function ShareForm() {
             <label className="text-xs font-medium uppercase tracking-wide" style={{color: '#475569'}}>Company</label>
             <div className="relative">
               <Input
-                className="h-11 text-sm pr-16"
+                className="h-11 text-sm"
                 style={{backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9'}}
                 placeholder="Search companies..."
                 value={companySearch}
@@ -156,9 +156,9 @@ function ShareForm() {
                 onFocus={() => setShowDropdown(true)}
               />
               {selectedCompany && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono" style={{color: '#475569'}}>
-                  {TIER_LABELS[selectedCompany.tier]}
-                </span>
+                <p className="text-xs font-mono mt-1" style={{color: '#475569'}}>
+                  {selectedCompany.name} · {TIER_LABELS[selectedCompany.tier]}
+                </p>
               )}
               {showDropdown && companySearch && filteredCompanies.length > 0 && (
                 <div className="absolute z-10 top-full mt-1 w-full rounded-xl shadow-xl max-h-48 overflow-y-auto" style={{backgroundColor: '#1e293b', border: '1px solid #334155'}}>
