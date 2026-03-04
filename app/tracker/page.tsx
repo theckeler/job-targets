@@ -46,7 +46,10 @@ export default function TrackerPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [filterOpen, setFilterOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
 
   // Add job sheet
   const [sheet, setSheet] = useState<AddJobSheet | null>(null);
@@ -162,6 +165,7 @@ export default function TrackerPage() {
   function toggleExpand(id: number) {
     setExpandedIds((prev) => {
       const next = new Set(prev);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
@@ -169,8 +173,8 @@ export default function TrackerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center">
-        <p className="text-[#64748b] text-sm font-mono">loading...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-white">loading...</p>
       </div>
     );
   }
@@ -181,15 +185,13 @@ export default function TrackerPage() {
   return (
     <>
       <div className="min-h-screen bg-[#0a0f1e] pb-24">
-        {/* Header */}
-        <div className="bg-sky-900 p-2">
-          {/* Title row */}
+        <div className="bg-sky-600 p-2">
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-col">
-              <h1 className="text-lg font-bold text-sky-200 tracking-tight leading-none">
+              <h1 className="text-lg font-bold tracking-tight leading-none">
                 Job Tracker
               </h1>
-              <div className="flex items-center gap-2 text-sky-300">
+              <div className="flex items-center gap-2">
                 <span className="text-xs">{totalJobs} tracked</span>
                 <span className="text-xs">{submittedCount} submitted</span>
               </div>
@@ -197,7 +199,6 @@ export default function TrackerPage() {
             <button
               type="button"
               onClick={() => setFilterOpen(true)}
-              // style={{ minWidth: 48, minHeight: 48 }}
               className={`relative flex items-center justify-center rounded bg-black border border-black p-2 ${hasActiveFilter ? "border-red-500 text-red-500" : "text-sky-300 border-transparent"}`}
             >
               <SlidersHorizontal size={18} />
@@ -236,7 +237,6 @@ export default function TrackerPage() {
                   <div className="flex gap-2">
                     {company.jobs.length > 0 && (
                       <button
-                        // className="text-xs font-mono text-white/60 shrink-0 p-2 border border-white/20 rounded min-w-12 flex items-center justify-center"
                         className={`min-w-12 p-2 select-none rounded text-xs ${isExpanded ? "border border-red-500 text-red-500" : "border border-white/30 text-white/30"}`}
                       >
                         {company.jobs.length}
@@ -283,15 +283,9 @@ export default function TrackerPage() {
                   <div className="border-t border-[#1e293b]">
                     {company.jobs.length === 0 ? (
                       <div className="px-4 py-4 flex items-center justify-between">
-                        <span className="text-xs text-[#334155] font-mono">
-                          no jobs logged yet
+                        <span className="text-xs text-orange-500 font-medium border border-orange-500 rounded px-2 py-1">
+                          No jobs logged yet
                         </span>
-                        {/* <button
-                          className="text-xs text-blue-500 font-medium"
-                          onClick={() => openSheet(company)}
-                        >
-                          Add one
-                        </button> */}
                       </div>
                     ) : (
                       <div className="divide-y divide-sky-500/50">
@@ -332,7 +326,12 @@ export default function TrackerPage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setDeleteConfirm({ id: job.id, title: job.title || job.url || "this job" })}
+                                onClick={() =>
+                                  setDeleteConfirm({
+                                    id: job.id,
+                                    title: job.title || job.url || "this job",
+                                  })
+                                }
                                 className="text-red-500 border p-2 rounded border-red-500 flex items-center justify-center min-w-12 text-xs"
                               >
                                 ×
@@ -358,8 +357,12 @@ export default function TrackerPage() {
             onClick={() => setDeleteConfirm(null)}
           />
           <div className="fixed z-50 left-4 right-4 top-1/2 -translate-y-1/2 bg-slate-900 border border-slate-700 rounded-2xl p-6">
-            <p className="text-white font-semibold text-base mb-1">Delete job?</p>
-            <p className="text-slate-400 text-sm mb-6 truncate">{deleteConfirm.title}</p>
+            <p className="text-white font-semibold text-base mb-1">
+              Delete job?
+            </p>
+            <p className="text-slate-400 text-sm mb-6 truncate">
+              {deleteConfirm.title}
+            </p>
             <div className="flex gap-3">
               <button
                 type="button"
