@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todd's Job Target List</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #eef1f8;
+    --border: #dde2ef;
+    --border2: #c8d0e4;
+    --text: #1a1f35;
+    --text-muted: #8892b0;
+    --text-dim: #4a5580;
+    --t1: #2563eb;
+    --t2: #059669;
+    --t3: #d97706;
+    --t4: #ea580c;
+    --t5: #64748b;
+    --applied: #059669;
+    --applied-bg: #ecfdf5;
+    --interested: #7c3aed;
+    --interested-bg: #f5f3ff;
+    --skip: #dc2626;
+    --skip-bg: #fef2f2;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .header-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .stat-label { font-size: 11px; color: var(--text-muted); }
+  .stat-val.applied    { color: var(--applied); }
+  .stat-val.interested { color: var(--interested); }
+  .stat-val.skip       { color: var(--skip); }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 7px 10px 7px 30px;
+    border-radius: var(--radius);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--t1);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .filters { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .filter-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface); }
+  .filter-btn.active { background: var(--surface); font-weight: 600; }
+  .filter-btn.f-all.active      { border-color: var(--t1); color: var(--t1); background: rgba(37,99,235,0.06); }
+  .filter-btn.f-t1.active       { border-color: var(--t1); color: var(--t1); background: rgba(37,99,235,0.06); }
+  .filter-btn.f-t2.active       { border-color: var(--t2); color: var(--t2); background: rgba(5,150,105,0.06); }
+  .filter-btn.f-t3.active       { border-color: var(--t3); color: var(--t3); background: rgba(217,119,6,0.06); }
+  .filter-btn.f-t4.active       { border-color: var(--t4); color: var(--t4); background: rgba(234,88,12,0.06); }
+  .filter-btn.f-t5.active       { border-color: var(--t5); color: var(--t5); background: rgba(100,116,139,0.06); }
+  .filter-btn.f-applied.active  { border-color: var(--applied); color: var(--applied); background: var(--applied-bg); }
+  .filter-btn.f-interested.active { border-color: var(--interested); color: var(--interested); background: var(--interested-bg); }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .tier-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .hint {
+    padding: 7px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-wrap { padding: 12px 16px 60px; }
+
+  /* Desktop table */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+    display: none;
+  }
+
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 4px 12px;
+    font-weight: 400;
+  }
+
+  tbody tr {
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.15s, transform 0.1s;
+  }
+
+  tbody tr:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  tbody tr.status-skip       { opacity: 0.45; }
+  tbody tr.status-applied    { background: var(--applied-bg); }
+  tbody tr.status-interested { background: var(--interested-bg); }
+
+  td { padding: 10px 12px; vertical-align: middle; }
+  td:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+  td:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+
+  .rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    min-width: 28px;
+  }
+
+  .company-name {
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13.5px;
+    transition: color 0.15s;
+  }
+
+  .company-name:hover { color: var(--t1); }
+  .status-applied .company-name { color: var(--applied); }
+
+  .tag-text { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+
+  .careers-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid var(--border2);
+    padding: 3px 9px;
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: var(--surface2);
+  }
+
+  .careers-link:hover { border-color: var(--t1); color: var(--t1); background: rgba(37,99,235,0.05); }
+
+  .status-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    transition: all 0.15s;
+    white-space: nowrap;
+    min-width: 84px;
+    text-align: center;
+  }
+
+  .status-btn:hover { border-color: var(--border2); color: var(--text); }
+  .status-btn.applied    { border-color: var(--applied);    color: var(--applied);    background: var(--applied-bg); }
+  .status-btn.interested { border-color: var(--interested); color: var(--interested); background: var(--interested-bg); }
+  .status-btn.skip       { border-color: var(--skip);       color: var(--skip);       background: var(--skip-bg); }
+
+  /* Mobile cards */
+  .card-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .card.status-skip       { opacity: 0.45; }
+  .card.status-applied    { background: var(--applied-bg);    border-color: rgba(5,150,105,0.25); }
+  .card.status-interested { background: var(--interested-bg); border-color: rgba(124,58,237,0.25); }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .card-rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    min-width: 18px;
+  }
+
+  .card-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.15s;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-name:hover { color: var(--t1); }
+  .status-applied .card-name { color: var(--applied); }
+
+  .card-tag {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 10px;
+    padding-left: 26px;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tier-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+  }
+
+  .card-actions { display: flex; align-items: center; gap: 7px; }
+
+  .empty-msg {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  @media (min-width: 720px) {
+    .table-wrap { padding: 16px 20px 60px; }
+    table { display: table; }
+    .card-list { display: none; }
+  }
+
+  @media (max-width: 719px) {
+    .header { padding: 12px 14px; }
+    .legend { padding: 8px 14px; gap: 10px; }
+    .hint   { padding: 6px 14px; }
+    .table-wrap { padding: 10px 12px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="header-title">Job Target List</span>
+    <span class="header-sub">Lead / Staff Frontend · Remote</span>
+  </div>
+  <div class="stats-row" id="stats"></div>
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" type="text" placeholder="Search companies..." id="searchInput" oninput="handleSearch()" />
+    </div>
+    <div class="filters" id="filterBtns"></div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="tier-dot" style="background:var(--t1)"></span><span style="color:var(--t1);font-weight:600">Dream Fit</span></div>
+  <div class="legend-item"><span class="tier-dot" style="background:var(--t2)"></span><span style="color:var(--t2);font-weight:600">High Priority</span></div>
+  <div class="legend-item"><span class="tier-dot" style="background:var(--t3)"></span><span style="color:var(--t3);font-weight:600">Strong Fit</span></div>
+  <div class="legend-item"><span class="tier-dot" style="background:var(--t4)"></span><span style="color:var(--t4);font-weight:600">Worth Applying</span></div>
+  <div class="legend-item"><span class="tier-dot" style="background:var(--t5)"></span><span style="color:var(--t5);font-weight:600">Big Brand</span></div>
+</div>
+
+<div class="hint">Tap the status button to cycle: New → Interested → Applied → Skip</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th></th>
+        <th>Company</th>
+        <th>Careers</th>
+        <th>Why You</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="card-list" id="cardList"></div>
+  <div id="emptyMsg" class="empty-msg" style="display:none">No companies match your filters.</div>
+</div>
+
+<script>
+const TIER_COLORS   = { 1:'var(--t1)', 2:'var(--t2)', 3:'var(--t3)', 4:'var(--t4)', 5:'var(--t5)' };
+const TIER_LABELS   = { 1:'Dream', 2:'High', 3:'Good', 4:'Worth', 5:'Brand' };
+const STATUS_CYCLE  = ['','interested','applied','skip'];
+const STATUS_LABELS = { '':'New', interested:'Interested', applied:'Applied', skip:'Skip' };
+
+const companies = [
+  { id:1,  name:"Vercel",           url:"https://vercel.com",              careers:"https://vercel.com/careers",                 tier:1, tag:"Next.js creators, frontend infra, design-obsessed culture" },
+  { id:2,  name:"Linear",           url:"https://linear.app",              careers:"https://linear.app/careers",                 tier:1, tag:"Best-in-class design, productivity tools, remote-first" },
+  { id:3,  name:"Framer",           url:"https://framer.com",              careers:"https://framer.com/careers",                 tier:1, tag:"Design+code overlap, component-driven, design engineer heaven" },
+  { id:4,  name:"Raycast",          url:"https://raycast.com",             careers:"https://raycast.com/careers",                tier:1, tag:"Design-obsessed developer tools, Mac-first, tiny elite team" },
+  { id:5,  name:"Tailwind Labs",    url:"https://tailwindcss.com",         careers:"https://tailwindcss.com/careers",            tier:1, tag:"CSS framework creators, design systems at the language level" },
+  { id:6,  name:"WorkOS",           url:"https://workos.com",              careers:"https://workos.com/careers",                 tier:1, tag:"Radix UI creators, design systems, developer tools [APPLIED]" },
+  { id:7,  name:"Cursor",           url:"https://cursor.com",              careers:"https://cursor.com/careers",                 tier:1, tag:"AI code editor, engineering craft, design quality matters" },
+  { id:8,  name:"Codeium",          url:"https://codeium.com",             careers:"https://codeium.com/careers",                tier:1, tag:"AI dev tools, fast-growing, engineers who care about UX" },
+  { id:9,  name:"Liveblocks",       url:"https://liveblocks.io",           careers:"https://liveblocks.io/careers",              tier:1, tag:"Real-time collaboration primitives, dev tools, design-forward" },
+  { id:10, name:"Chromatic",        url:"https://www.chromatic.com",       careers:"https://www.chromatic.com/careers",          tier:1, tag:"Storybook/UI testing, component library culture, design systems" },
+  { id:11, name:"PostHog",          url:"https://posthog.com",             careers:"https://posthog.com/careers",                tier:1, tag:"Fully remote, open source, ships fast, frontend matters a lot" },
+  { id:12, name:"Sanity",           url:"https://sanity.io",               careers:"https://sanity.io/careers",                  tier:1, tag:"Headless CMS, content infrastructure, great component architecture" },
+  { id:13, name:"Supabase",         url:"https://supabase.com",            careers:"https://supabase.com/careers",               tier:1, tag:"Open source Firebase alt, strong developer tools culture" },
+  { id:14, name:"Clerk",            url:"https://clerk.com",               careers:"https://clerk.com/careers",                  tier:1, tag:"Auth developer tools, React/TypeScript heavy, design-forward docs" },
+  { id:15, name:"Resend",           url:"https://resend.com",              careers:"https://resend.com/careers",                 tier:1, tag:"Email dev tools, React Email creator, design-forward, small team" },
+  { id:16, name:"Expo",             url:"https://expo.dev",                careers:"https://expo.dev/careers",                   tier:1, tag:"React Native tooling, cross-platform, open source" },
+  { id:17, name:"Prisma",           url:"https://prisma.io",               careers:"https://prisma.io/careers",                  tier:1, tag:"TypeScript-first ORM, developer tools, design-forward docs" },
+  { id:18, name:"Convex",           url:"https://convex.dev",              careers:"https://convex.dev/careers",                 tier:1, tag:"Real-time database, developer tools, TypeScript-first" },
+  { id:19, name:"Railway",          url:"https://railway.app",             careers:"https://railway.app/careers",                tier:1, tag:"Deployment platform, strong design aesthetic, small team" },
+  { id:20, name:"Fly.io",           url:"https://fly.io",                  careers:"https://fly.io/jobs",                        tier:1, tag:"Edge deployment, quirky culture, developer-first" },
+  { id:21, name:"Deno",             url:"https://deno.com",                careers:"https://deno.com/careers",                   tier:1, tag:"JS runtime creators, TypeScript native, small but mighty" },
+  { id:22, name:"Cal.com",          url:"https://cal.com",                 careers:"https://cal.com/careers",                    tier:1, tag:"Open source scheduling, great design, fully distributed" },
+  { id:23, name:"Stytch",           url:"https://stytch.com",              careers:"https://stytch.com/careers",                 tier:1, tag:"Auth developer tools, React-heavy, design systems focus" },
+  { id:24, name:"PlanetScale",      url:"https://planetscale.com",         careers:"https://planetscale.com/careers",            tier:1, tag:"Database platform, great design culture, branching model" },
+  { id:25, name:"Nx / Nrwl",        url:"https://nx.dev",                  careers:"https://nx.dev/company/careers",             tier:1, tag:"Monorepo tooling, direct match for your PMX module federation work" },
+  { id:26, name:"StackBlitz",       url:"https://stackblitz.com",          careers:"https://stackblitz.com/careers",             tier:1, tag:"Browser-based dev environment, web container technology, dev UX" },
+  { id:27, name:"CodeSandbox",      url:"https://codesandbox.io",          careers:"https://codesandbox.io/careers",             tier:1, tag:"Cloud dev environments, React-first, design-quality UI" },
+  { id:28, name:"Zed Industries",   url:"https://zed.dev",                 careers:"https://zed.dev/jobs",                       tier:1, tag:"Next-gen code editor, performance-obsessed, small team, craft" },
+  { id:29, name:"Warp",             url:"https://warp.dev",                careers:"https://warp.dev/careers",                   tier:1, tag:"Terminal reimagined, developer UX obsession, design-forward" },
+  { id:30, name:"Mintlify",         url:"https://mintlify.com",            careers:"https://mintlify.com/careers",               tier:1, tag:"Docs-as-code platform, design-forward, React component library" },
+  { id:31, name:"ReadMe",           url:"https://readme.com",              careers:"https://readme.com/careers",                 tier:1, tag:"API docs platform, design matters, developer experience focus" },
+  { id:32, name:"Lottiefiles",      url:"https://lottiefiles.com",         careers:"https://lottiefiles.com/careers",            tier:1, tag:"Animation platform, design+dev overlap, Visual Comm degree gold" },
+  { id:33, name:"Neon",             url:"https://neon.tech",               careers:"https://neon.tech/careers",                  tier:1, tag:"Serverless Postgres, dev tools culture, TypeScript SDK" },
+  { id:34, name:"Sourcegraph",      url:"https://sourcegraph.com",         careers:"https://boards.greenhouse.io/sourcegraph",   tier:1, tag:"Code intelligence, AI-powered dev tools, TypeScript heavy" },
+  { id:35, name:"Temporal",         url:"https://temporal.io",             careers:"https://temporal.io/careers",                tier:1, tag:"Workflow engine, dev tools, TypeScript SDK, growing fast" },
+  { id:36, name:"Inngest",          url:"https://inngest.com",             careers:"https://inngest.com/careers",                tier:1, tag:"Background jobs platform, DX-focused, TypeScript-first" },
+  { id:37, name:"Trigger.dev",      url:"https://trigger.dev",             careers:"https://trigger.dev/careers",                tier:1, tag:"Background jobs for devs, open source, TypeScript, remote team" },
+  { id:38, name:"Novu",             url:"https://novu.co",                 careers:"https://novu.co/careers",                    tier:1, tag:"Notification infrastructure, open source, developer tools" },
+  { id:39, name:"Gitpod",           url:"https://gitpod.io",               careers:"https://gitpod.io/careers",                  tier:1, tag:"Cloud dev environments, open source, developer experience" },
+  { id:40, name:"Zeplin",           url:"https://zeplin.io",               careers:"https://zeplin.io/careers",                  tier:1, tag:"Design handoff tool, lives at design/dev intersection" },
+  { id:41, name:"Depot",            url:"https://depot.dev",               careers:"https://depot.dev/careers",                  tier:1, tag:"Faster container builds, dev tools, TypeScript, tiny team" },
+  { id:42, name:"Upstash",          url:"https://upstash.com",             careers:"https://upstash.com/careers",                tier:1, tag:"Serverless Redis/Kafka, dev tools, strong React integration" },
+  { id:43, name:"Notion",           url:"https://notion.so",               careers:"https://notion.so/careers",                  tier:2, tag:"Design-forward productivity, React-heavy frontend" },
+  { id:44, name:"Figma",            url:"https://figma.com",               careers:"https://figma.com/careers",                  tier:2, tag:"Design tool, design+code culture, TypeScript, high bar" },
+  { id:45, name:"Pitch",            url:"https://pitch.com",               careers:"https://pitch.com/careers",                  tier:2, tag:"Presentation tool, design-obsessed, remote-friendly" },
+  { id:46, name:"Webflow",          url:"https://webflow.com",             careers:"https://webflow.com/careers",                tier:2, tag:"No-code/design tool, visual communication degree directly relevant" },
+  { id:47, name:"Ghost",            url:"https://ghost.org",               careers:"https://careers.ghost.org",                  tier:2, tag:"Open source publishing, fully remote, strong design sensibility" },
+  { id:48, name:"Coda",             url:"https://coda.io",                 careers:"https://coda.io/jobs",                       tier:2, tag:"Docs+spreadsheets hybrid, strong frontend culture" },
+  { id:49, name:"Dovetail",         url:"https://dovetail.com",            careers:"https://dovetail.com/careers",               tier:2, tag:"User research tools, design-forward, remote, React/TypeScript" },
+  { id:50, name:"Maze",             url:"https://maze.co",                 careers:"https://maze.co/careers",                    tier:2, tag:"Design research platform, design+code culture" },
+  { id:51, name:"Loom",             url:"https://loom.com",                careers:"https://loom.com/careers",                   tier:2, tag:"Video messaging, strong frontend, Atlassian-owned" },
+  { id:52, name:"Miro",             url:"https://miro.com",                careers:"https://miro.com/careers",                   tier:2, tag:"Visual collaboration, React-heavy frontend, strong design" },
+  { id:53, name:"Airtable",         url:"https://airtable.com",            careers:"https://airtable.com/careers",               tier:2, tag:"No-code database, strong frontend, design-forward" },
+  { id:54, name:"LaunchDarkly",     url:"https://launchdarkly.com",        careers:"https://launchdarkly.com/careers",           tier:2, tag:"Feature flags, developer tools, React SDK focus" },
+  { id:55, name:"Sentry",           url:"https://sentry.io",               careers:"https://sentry.io/careers",                  tier:2, tag:"Error monitoring, open source, frontend-heavy product" },
+  { id:56, name:"LogRocket",        url:"https://logrocket.com",           careers:"https://logrocket.com/careers",              tier:2, tag:"Session replay/monitoring, lives in frontend world" },
+  { id:57, name:"FullStory",        url:"https://fullstory.com",           careers:"https://fullstory.com/careers",              tier:2, tag:"Digital experience analytics, frontend instrumentation" },
+  { id:58, name:"Hotjar",           url:"https://hotjar.com",              careers:"https://hotjar.com/careers",                 tier:2, tag:"Heatmaps/UX tools, fully remote, strong design culture" },
+  { id:59, name:"Amplitude",        url:"https://amplitude.com",           careers:"https://amplitude.com/careers",              tier:2, tag:"Product analytics, remote-friendly, React-heavy frontend" },
+  { id:60, name:"Algolia",          url:"https://algolia.com",             careers:"https://algolia.com/careers",                tier:2, tag:"Search platform, great DX, strong React/TypeScript SDK" },
+  { id:61, name:"Storyblok",        url:"https://storyblok.com",           careers:"https://storyblok.com/careers",              tier:2, tag:"Headless CMS, visual editor, component library focus" },
+  { id:62, name:"Contentful",       url:"https://contentful.com",          careers:"https://contentful.com/careers",             tier:2, tag:"Headless CMS, strong frontend, component-driven content" },
+  { id:63, name:"Netlify",          url:"https://netlify.com",             careers:"https://netlify.com/careers",                tier:2, tag:"Frontend deployment, DX-focused, remote-first culture" },
+  { id:64, name:"Stripe",           url:"https://stripe.com",              careers:"https://stripe.com/jobs",                    tier:2, tag:"Payments, legendary documentation/design quality, high bar" },
+  { id:65, name:"Brex",             url:"https://brex.com",                careers:"https://brex.com/careers",                   tier:2, tag:"Fintech, design-forward, strong React/TypeScript stack" },
+  { id:66, name:"Plaid",            url:"https://plaid.com",               careers:"https://plaid.com/careers",                  tier:2, tag:"Fintech dev tools, developer experience focus, remote-friendly" },
+  { id:67, name:"Paddle",           url:"https://paddle.com",              careers:"https://paddle.com/careers",                 tier:2, tag:"Payments platform, fully remote, strong frontend team" },
+  { id:68, name:"Lemon Squeezy",    url:"https://lemonsqueezy.com",        careers:"https://lemonsqueezy.com/careers",           tier:2, tag:"Payments for devs, beautiful design, small design-focused team" },
+  { id:69, name:"Appsmith",         url:"https://appsmith.com",            careers:"https://appsmith.com/careers",               tier:2, tag:"Open source low-code, component library, React-based" },
+  { id:70, name:"Height",           url:"https://height.app",              careers:"https://height.app/careers",                 tier:2, tag:"Project management, design-obsessed, tiny team, great UX" },
+  { id:71, name:"Perplexity",       url:"https://perplexity.ai",           careers:"https://perplexity.ai/careers",              tier:2, tag:"AI search, fast-growing, strong frontend investment" },
+  { id:72, name:"Hugging Face",     url:"https://huggingface.co",          careers:"https://huggingface.co/jobs",                tier:2, tag:"AI/ML platform, open source, React-heavy, design improving" },
+  { id:73, name:"Weights & Biases", url:"https://wandb.ai",               careers:"https://wandb.ai/site/company/careers",      tier:2, tag:"ML tooling, dev tools culture, strong frontend team" },
+  { id:74, name:"Replicate",        url:"https://replicate.com",           careers:"https://replicate.com/careers",              tier:2, tag:"AI model platform, design-forward, developer tools" },
+  { id:75, name:"Grafana Labs",     url:"https://grafana.com",             careers:"https://grafana.com/about/careers",          tier:2, tag:"Open source observability, fully remote, frontend-heavy dashboards" },
+  { id:76, name:"Infisical",        url:"https://infisical.com",           careers:"https://infisical.com/careers",              tier:2, tag:"Secrets management, open source, TypeScript, small fast team" },
+  { id:77, name:"Budibase",         url:"https://budibase.com",            careers:"https://budibase.com/careers",               tier:2, tag:"Open source low-code, component builder, remote team" },
+  { id:78, name:"Chargebee",        url:"https://chargebee.com",           careers:"https://chargebee.com/careers",              tier:2, tag:"Subscription billing, design-forward, React/TypeScript" },
+  { id:79, name:"Retool",           url:"https://retool.com",              careers:"https://retool.com/careers",                 tier:2, tag:"Internal tools, component library, React (verify remote status)" },
+  { id:80, name:"Runway",           url:"https://runwayml.com",            careers:"https://runwayml.com/careers",               tier:2, tag:"AI video, design+engineering intersection, creative tools" },
+  { id:81, name:"GitLab",           url:"https://gitlab.com",              careers:"https://about.gitlab.com/jobs",              tier:3, tag:"Fully remote pioneer, DevOps platform, strong culture" },
+  { id:82, name:"Zapier",           url:"https://zapier.com",              careers:"https://zapier.com/careers",                 tier:3, tag:"Automation platform, remote-first since day 1, strong frontend" },
+  { id:83, name:"HubSpot",          url:"https://hubspot.com",             careers:"https://hubspot.com/careers",                tier:3, tag:"Marketing software, remote-friendly, solid frontend engineering" },
+  { id:84, name:"Intercom",         url:"https://intercom.com",            careers:"https://intercom.com/careers",               tier:3, tag:"Customer messaging, design-forward product, remote-friendly" },
+  { id:85, name:"Grammarly",        url:"https://grammarly.com",           careers:"https://grammarly.com/jobs",                 tier:3, tag:"AI writing tools, strong frontend, design quality matters" },
+  { id:86, name:"Duolingo",         url:"https://duolingo.com",            careers:"https://careers.duolingo.com",               tier:3, tag:"Ed tech, design-obsessed, remote-friendly, React Native" },
+  { id:87, name:"Discord",          url:"https://discord.com",             careers:"https://discord.com/careers",                tier:3, tag:"Communication platform, React-heavy frontend, strong engineering" },
+  { id:88, name:"Canva",            url:"https://canva.com",               careers:"https://canva.com/careers",                  tier:3, tag:"Design tools, visual communication directly relevant, remote-friendly" },
+  { id:89, name:"Spotify",          url:"https://spotify.com",             careers:"https://lifeatspotify.com",                  tier:3, tag:"Audio streaming, remote-friendly, strong design system culture" },
+  { id:90, name:"Pinterest",        url:"https://pinterest.com",           careers:"https://careers.pinterest.com",              tier:3, tag:"Visual discovery, remote-friendly, design-forward, React heavy" },
+  { id:91, name:"Cloudflare",       url:"https://cloudflare.com",          careers:"https://cloudflare.com/careers",             tier:3, tag:"Internet infrastructure, remote-friendly, Workers platform growing" },
+  { id:92, name:"Datadog",          url:"https://datadoghq.com",           careers:"https://careers.datadoghq.com",              tier:3, tag:"Monitoring/observability, frontend-heavy dashboards, remote-friendly" },
+  { id:93, name:"PagerDuty",        url:"https://pagerduty.com",           careers:"https://pagerduty.com/careers",              tier:3, tag:"Incident management, remote-friendly, solid frontend engineering" },
+  { id:94, name:"HashiCorp",        url:"https://hashicorp.com",           careers:"https://hashicorp.com/careers",              tier:3, tag:"Infrastructure tools, fully remote, docs and UX matter" },
+  { id:95, name:"Elastic",          url:"https://elastic.co",              careers:"https://elastic.co/careers",                 tier:3, tag:"Search platform, distributed remote team, frontend dashboards" },
+  { id:96, name:"New Relic",        url:"https://newrelic.com",            careers:"https://newrelic.com/about/careers",         tier:3, tag:"Observability, remote-friendly, frontend-heavy platform" },
+  { id:97, name:"Render",           url:"https://render.com",              careers:"https://render.com/careers",                 tier:3, tag:"Cloud hosting, design-forward, small team, developer experience" },
+  { id:98, name:"DigitalOcean",     url:"https://digitalocean.com",        careers:"https://digitalocean.com/careers",           tier:3, tag:"Cloud platform, remote-friendly, developer-first culture" },
+  { id:99, name:"Twilio",           url:"https://twilio.com",              careers:"https://twilio.com/en-us/company/jobs",      tier:3, tag:"Communications platform, remote-friendly, strong frontend" },
+  { id:100,name:"Okta",             url:"https://okta.com",                careers:"https://okta.com/company/careers",           tier:3, tag:"Identity platform, remote-friendly, frontend SDK work" },
+  { id:101,name:"Help Scout",       url:"https://helpscout.com",           careers:"https://helpscout.com/company/careers",      tier:3, tag:"Customer support, fully remote since founding, strong culture" },
+  { id:102,name:"Front",            url:"https://front.com",               careers:"https://front.com/company/careers",          tier:3, tag:"Customer ops platform, remote-friendly, React-heavy" },
+  { id:103,name:"Doist",            url:"https://doist.com",               careers:"https://doist.com/careers",                  tier:3, tag:"Todoist creators, 100% remote, async culture, design-forward" },
+  { id:104,name:"Buffer",           url:"https://buffer.com",              careers:"https://buffer.com/journey",                 tier:3, tag:"Social media tools, fully remote, transparent culture" },
+  { id:105,name:"Automattic",       url:"https://automattic.com",          careers:"https://automattic.com/work-with-us",        tier:3, tag:"WordPress.com, fully distributed, React-heavy Gutenberg" },
+  { id:106,name:"Basecamp",         url:"https://basecamp.com",            careers:"https://basecamp.com/jobs",                  tier:3, tag:"Project management, fully remote, creators of remote work culture" },
+  { id:107,name:"Atlassian",        url:"https://atlassian.com",           careers:"https://www.atlassian.com/company/careers",  tier:3, tag:"Dev tools, Jira/Confluence, remote-friendly, design system work" },
+  { id:108,name:"Asana",            url:"https://asana.com",               careers:"https://asana.com/jobs",                     tier:3, tag:"Work management, remote-friendly, strong frontend engineering" },
+  { id:109,name:"Monday.com",       url:"https://monday.com",              careers:"https://monday.com/careers",                 tier:3, tag:"Work OS, remote-friendly, React-heavy platform" },
+  { id:110,name:"Lattice",          url:"https://lattice.com",             careers:"https://lattice.com/careers",                tier:3, tag:"HR software, remote-friendly, strong React/TypeScript stack" },
+  { id:111,name:"Rippling",         url:"https://rippling.com",            careers:"https://rippling.com/careers",               tier:3, tag:"HR/IT platform, remote-friendly, React-heavy frontend" },
+  { id:112,name:"Deel",             url:"https://deel.com",                careers:"https://deel.com/careers",                   tier:3, tag:"Global HR/payroll, fully remote team, 100+ countries" },
+  { id:113,name:"Remote",           url:"https://remote.com",              careers:"https://remote.com/careers",                 tier:3, tag:"Remote HR platform, fully remote, strong culture" },
+  { id:114,name:"Gusto",            url:"https://gusto.com",               careers:"https://gusto.com/about/careers",            tier:3, tag:"Payroll/HR, remote-friendly, strong frontend engineering" },
+  { id:115,name:"Typeform",         url:"https://typeform.com",            careers:"https://typeform.com/careers",               tier:3, tag:"Forms platform, design-obsessed, remote-friendly" },
+  { id:116,name:"Segment",          url:"https://segment.com",             careers:"https://segment.com/careers",                tier:3, tag:"Data infrastructure, Twilio-owned, developer tools culture" },
+  { id:117,name:"Heap",             url:"https://heap.io",                 careers:"https://heap.io/company/careers",            tier:3, tag:"Product analytics, frontend instrumentation focus" },
+  { id:118,name:"Pendo",            url:"https://pendo.io",                careers:"https://pendo.io/careers",                   tier:3, tag:"Product analytics, in-app guidance, frontend-heavy" },
+  { id:119,name:"UserTesting",      url:"https://usertesting.com",         careers:"https://usertesting.com/company/careers",    tier:3, tag:"UX research platform, design+dev overlap, remote-friendly" },
+  { id:120,name:"ClickUp",          url:"https://clickup.com",             careers:"https://clickup.com/careers",                tier:3, tag:"Productivity platform, remote-friendly, React-heavy" },
+  { id:121,name:"Aha!",             url:"https://aha.io",                  careers:"https://aha.io/company/careers",             tier:3, tag:"Product roadmaps, fully remote, design-forward" },
+  { id:122,name:"Shortcut",         url:"https://shortcut.com",            careers:"https://shortcut.com/company/jobs",          tier:3, tag:"Project management, remote-friendly, design-forward" },
+  { id:123,name:"OpenAI",           url:"https://openai.com",              careers:"https://openai.com/careers",                 tier:3, tag:"AI company, strong frontend for ChatGPT/API tools, high comp" },
+  { id:124,name:"Anthropic",        url:"https://anthropic.com",           careers:"https://anthropic.com/careers",              tier:3, tag:"AI safety, Claude creator, strong frontend for Claude.ai" },
+  { id:125,name:"Cohere",           url:"https://cohere.com",              careers:"https://cohere.com/careers",                 tier:3, tag:"Enterprise AI, developer tools, growing frontend team" },
+  { id:126,name:"Together AI",      url:"https://together.ai",             careers:"https://together.ai/careers",                tier:3, tag:"AI inference platform, developer tools, fast-growing" },
+  { id:127,name:"Scale AI",         url:"https://scale.com",               careers:"https://scale.com/careers",                  tier:3, tag:"AI data platform, frontend-heavy tooling, high compensation" },
+  { id:128,name:"Jasper",           url:"https://jasper.ai",               careers:"https://jasper.ai/careers",                  tier:3, tag:"AI writing, design-forward, React/TypeScript stack" },
+  { id:129,name:"Mixpanel",         url:"https://mixpanel.com",            careers:"https://mixpanel.com/careers",               tier:3, tag:"Product analytics, remote-friendly, strong frontend" },
+  { id:130,name:"Calendly",         url:"https://calendly.com",            careers:"https://careers.calendly.com",               tier:3, tag:"Scheduling platform, remote-friendly, clean React/TypeScript" },
+  { id:131,name:"Shopify",          url:"https://shopify.com",             careers:"https://shopify.com/careers",                tier:4, tag:"E-commerce, remote-friendly, Polaris design system, Liquid" },
+  { id:132,name:"Dropbox",          url:"https://dropbox.com",             careers:"https://dropbox.com/jobs",                   tier:4, tag:"Cloud storage, remote-friendly, strong design culture" },
+  { id:133,name:"Airbnb",           url:"https://airbnb.com",              careers:"https://careers.airbnb.com",                 tier:4, tag:"Travel, known for strong frontend/design culture" },
+  { id:134,name:"Reddit",           url:"https://reddit.com",              careers:"https://www.redditinc.com/careers",          tier:4, tag:"Community platform, remote-friendly, major frontend rebuild" },
+  { id:135,name:"Twitch",           url:"https://twitch.tv",               careers:"https://twitch.tv/jobs",                     tier:4, tag:"Streaming, Amazon-owned, remote-friendly" },
+  { id:136,name:"Snap",             url:"https://snap.com",                careers:"https://snap.com/en-US/jobs",                tier:4, tag:"Social media, remote-friendly, design-forward platform" },
+  { id:137,name:"Block",            url:"https://block.xyz",               careers:"https://careers.block.xyz",                  tier:4, tag:"Fintech, Square/Cash App, remote-friendly, design-forward" },
+  { id:138,name:"Coinbase",         url:"https://coinbase.com",            careers:"https://coinbase.com/careers",               tier:4, tag:"Crypto exchange, remote-friendly, strong frontend team" },
+  { id:139,name:"Instacart",        url:"https://instacart.com",           careers:"https://instacart.com/careers",              tier:4, tag:"Grocery delivery, remote-friendly, strong frontend" },
+  { id:140,name:"Robinhood",        url:"https://robinhood.com",           careers:"https://careers.robinhood.com",              tier:4, tag:"Fintech, remote-friendly, design-forward trading app" },
+  { id:141,name:"Klarna",           url:"https://klarna.com",              careers:"https://klarna.com/careers",                 tier:4, tag:"BNPL/fintech, design-forward, remote-friendly" },
+  { id:142,name:"Affirm",           url:"https://affirm.com",              careers:"https://affirm.com/careers",                 tier:4, tag:"BNPL/fintech, remote-friendly, React-heavy frontend" },
+  { id:143,name:"Zoom",             url:"https://zoom.us",                 careers:"https://careers.zoom.us",                    tier:4, tag:"Video comms, remote-friendly, large engineering org" },
+  { id:144,name:"Box",              url:"https://box.com",                 careers:"https://box.com/careers",                    tier:4, tag:"Cloud content management, remote-friendly" },
+  { id:145,name:"GitHub",           url:"https://github.com",              careers:"https://github.com/about/careers",           tier:4, tag:"Microsoft-owned, developer tools, remote-friendly, high comp" },
+  { id:146,name:"Salesforce",       url:"https://salesforce.com",          careers:"https://salesforce.com/careers",             tier:4, tag:"CRM, remote-friendly, large frontend org, Lightning design system" },
+  { id:147,name:"Adobe",            url:"https://adobe.com",               careers:"https://adobe.com/careers",                  tier:4, tag:"Creative software, design-focused culture, Spectrum design system" },
+  { id:148,name:"Zendesk",          url:"https://zendesk.com",             careers:"https://jobs.zendesk.com",                   tier:4, tag:"Customer service, remote-friendly, strong frontend" },
+  { id:149,name:"Freshworks",       url:"https://freshworks.com",          careers:"https://careers.freshworks.com",             tier:4, tag:"CRM/support, remote-friendly, growing frontend team" },
+  { id:150,name:"Chime",            url:"https://chime.com",               careers:"https://careers.chime.com",                  tier:4, tag:"Neobank, remote-friendly, design-forward, strong frontend" },
+  { id:151,name:"DoorDash",         url:"https://doordash.com",            careers:"https://careers.doordash.com",               tier:4, tag:"Delivery, remote-friendly, large engineering org" },
+  { id:152,name:"Lyft",             url:"https://lyft.com",                careers:"https://lyft.com/careers",                   tier:4, tag:"Rideshare, remote-friendly, design system culture" },
+  { id:153,name:"Qualtrics",        url:"https://qualtrics.com",           careers:"https://qualtrics.com/careers",              tier:4, tag:"Experience management, remote-friendly, React-heavy" },
+  { id:154,name:"SurveyMonkey",     url:"https://surveymonkey.com",        careers:"https://careers.surveymonkey.com",           tier:4, tag:"Forms/surveys, remote-friendly, strong frontend" },
+  { id:155,name:"Mailchimp",        url:"https://mailchimp.com",           careers:"https://mailchimp.com/careers",              tier:4, tag:"Email marketing, Intuit-owned, strong design system" },
+  { id:156,name:"Zenefits",         url:"https://zenefits.com",            careers:"https://zenefits.com/careers",               tier:4, tag:"HR platform, remote-friendly, React-heavy" },
+  { id:157,name:"HubSpot",          url:"https://hubspot.com",             careers:"https://hubspot.com/careers",                tier:4, tag:"CRM/marketing platform, remote-friendly, solid frontend org" },
+  { id:158,name:"Figma",            url:"https://figma.com",               careers:"https://figma.com/careers",                  tier:4, tag:"Design tool, Adobe-acquired, high bar, design+code culture" },
+  { id:159,name:"PagerDuty",        url:"https://pagerduty.com",           careers:"https://pagerduty.com/careers",              tier:4, tag:"Incident management, remote-friendly, frontend-heavy" },
+  { id:160,name:"Splunk",           url:"https://splunk.com",              careers:"https://careers.splunk.com",                 tier:4, tag:"Data observability, Cisco-owned, remote-friendly" },
+  { id:161,name:"Microsoft",        url:"https://microsoft.com",           careers:"https://careers.microsoft.com",              tier:5, tag:"GitHub, VS Code, Azure, TypeScript creators — strong frontend roles" },
+  { id:162,name:"Google",           url:"https://google.com",              careers:"https://careers.google.com",                 tier:5, tag:"Search/cloud, Material Design system, top-tier frontend craft" },
+  { id:163,name:"Meta",             url:"https://meta.com",                careers:"https://metacareers.com",                    tier:5, tag:"React/React Native creators, open source, design system culture" },
+  { id:164,name:"Apple",            url:"https://apple.com",               careers:"https://jobs.apple.com",                     tier:5, tag:"Design-obsessed culture, HIG, SwiftUI/web frontend roles" },
+  { id:165,name:"Amazon",           url:"https://amazon.com",              careers:"https://amazon.jobs",                        tier:5, tag:"AWS Console, large scale, Cloudscape design system" },
+  { id:166,name:"Netflix",          url:"https://netflix.com",             careers:"https://jobs.netflix.com",                   tier:5, tag:"Streaming, remote-friendly, high comp ($300K+), design systems" },
+  { id:167,name:"LinkedIn",         url:"https://linkedin.com",            careers:"https://careers.linkedin.com",               tier:5, tag:"Microsoft-owned, professional network, strong frontend org" },
+  { id:168,name:"Uber",             url:"https://uber.com",                careers:"https://uber.com/careers",                   tier:5, tag:"Rides/delivery, remote-friendly, Base Web design system" },
+  { id:169,name:"PayPal",           url:"https://paypal.com",              careers:"https://careers.pypl.com",                   tier:5, tag:"Payments, remote-friendly, large frontend engineering org" },
+  { id:170,name:"Intuit",           url:"https://intuit.com",              careers:"https://careers.intuit.com",                 tier:5, tag:"TurboTax/QuickBooks, remote-friendly, Harmony design system" },
+  { id:171,name:"Workday",          url:"https://workday.com",             careers:"https://careers.workday.com",                tier:5, tag:"HR software, remote-friendly, large frontend org" },
+  { id:172,name:"ServiceNow",       url:"https://servicenow.com",          careers:"https://careers.servicenow.com",             tier:5, tag:"Enterprise IT, remote-friendly, large scale React frontend" },
+  { id:173,name:"IBM",              url:"https://ibm.com",                 careers:"https://ibm.com/careers",                    tier:5, tag:"Carbon Design System creators, remote-friendly, large org" },
+  { id:174,name:"Palo Alto Networks",url:"https://paloaltonetworks.com",   careers:"https://careers.paloaltonetworks.com",       tier:5, tag:"Cybersecurity, remote-friendly, large frontend engineering org" },
+  { id:175,name:"CrowdStrike",      url:"https://crowdstrike.com",         careers:"https://crowdstrike.com/careers",            tier:5, tag:"Cybersecurity, remote-friendly, React-heavy dashboards" },
+  { id:176,name:"Snowflake",        url:"https://snowflake.com",           careers:"https://careers.snowflake.com",              tier:5, tag:"Data cloud, remote-friendly, strong frontend engineering" },
+  { id:177,name:"Databricks",       url:"https://databricks.com",          careers:"https://databricks.com/company/careers",     tier:5, tag:"Data/AI platform, remote-friendly, complex frontend" },
+  { id:178,name:"Palantir",         url:"https://palantir.com",            careers:"https://palantir.com/careers",               tier:5, tag:"Data analytics, complex UI, design systems at scale" },
+  { id:179,name:"Stripe",           url:"https://stripe.com",              careers:"https://stripe.com/jobs",                    tier:5, tag:"Legendary docs/design, high bar, great for design-engineer profiles" },
+  { id:180,name:"Twitch",           url:"https://twitch.tv",               careers:"https://twitch.tv/jobs",                     tier:5, tag:"Streaming, Amazon-owned, large video platform engineering" },
+];
+
+let statuses = {};
+let activeFilter = 'all';
+let searchText = '';
+
+function getStatus(id) { return statuses[id] || ''; }
+
+function cycleStatus(id) {
+  const cur = getStatus(id);
+  const idx = STATUS_CYCLE.indexOf(cur);
+  statuses[id] = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+  render();
+}
+
+function filteredCompanies() {
+  return companies.filter(c => {
+    const s = getStatus(c.id);
+    if (activeFilter === 'applied'    && s !== 'applied')    return false;
+    if (activeFilter === 'interested' && s !== 'interested') return false;
+    if (activeFilter === 'skip'       && s !== 'skip')       return false;
+    if (activeFilter === 'new'        && s !== '')           return false;
+    if (activeFilter === 't1' && c.tier !== 1) return false;
+    if (activeFilter === 't2' && c.tier !== 2) return false;
+    if (activeFilter === 't3' && c.tier !== 3) return false;
+    if (activeFilter === 't4' && c.tier !== 4) return false;
+    if (activeFilter === 't5' && c.tier !== 5) return false;
+    if (searchText) {
+      const q = searchText.toLowerCase();
+      return c.name.toLowerCase().includes(q) || c.tag.toLowerCase().includes(q);
+    }
+    return true;
+  });
+}
+
+function countStatus(s) { return companies.filter(c => getStatus(c.id) === s).length; }
+
+function renderStats() {
+  const total = companies.length;
+  const applied = countStatus('applied');
+  const interested = countStatus('interested');
+  const skipped = countStatus('skip');
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><span class="stat-val">${total}</span><span class="stat-label">Total</span></div>
+    <div class="stat"><span class="stat-val applied">${applied}</span><span class="stat-label">Applied</span></div>
+    <div class="stat"><span class="stat-val interested">${interested}</span><span class="stat-label">Interested</span></div>
+    <div class="stat"><span class="stat-val skip">${skipped}</span><span class="stat-label">Skipped</span></div>
+    <div class="stat"><span class="stat-val">${total - applied - skipped}</span><span class="stat-label">Remaining</span></div>
+  `;
+}
+
+function renderFilters() {
+  const filters = [
+    { key:'all',        label:'All',        cls:'f-all' },
+    { key:'t1',         label:'Dream',      cls:'f-t1' },
+    { key:'t2',         label:'High',       cls:'f-t2' },
+    { key:'t3',         label:'Good',       cls:'f-t3' },
+    { key:'t4',         label:'Worth',      cls:'f-t4' },
+    { key:'t5',         label:'Brand',      cls:'f-t5' },
+    { key:'interested', label:'Interested', cls:'f-interested' },
+    { key:'applied',    label:'Applied',    cls:'f-applied' },
+    { key:'new',        label:'New Only',   cls:'' },
+  ];
+  document.getElementById('filterBtns').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${f.cls} ${activeFilter === f.key ? 'active' : ''}" onclick="setFilter('${f.key}')">${f.label}</button>`
+  ).join('');
+}
+
+function renderTable() {
+  const list = filteredCompanies();
+  const tbody = document.getElementById('tableBody');
+  const cards = document.getElementById('cardList');
+  const empty = document.getElementById('emptyMsg');
+
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    cards.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map((c, i) => {
+    const s = getStatus(c.id);
+    return `
+      <tr class="${s ? 'status-' + s : ''}">
+        <td class="rank">${i + 1}</td>
+        <td><span class="tier-dot" style="background:${TIER_COLORS[c.tier]}" title="${TIER_LABELS[c.tier]}"></span></td>
+        <td><a href="${c.url}" target="_blank" rel="noopener" class="company-name">${c.name}</a></td>
+        <td><a href="${c.careers}" target="_blank" rel="noopener" class="careers-link">careers →</a></td>
+        <td class="tag-text">${c.tag}</td>
+        <td><button class="status-btn ${s}" onclick="cycleStatus(${c.id})">${STATUS_LABELS[s]}</button></td>
+      </tr>`;
+  }).join('');
+
+  cards.innerHTML = list.map((c, i) => {
+    const s = getStatus(c.id);
+    return `
+      <div class="card ${s ? 'status-' + s : ''}">
+        <div class="card-top">
+          <span class="card-rank">${i + 1}</span>
+          <span class="tier-dot" style="background:${TIER_COLORS[c.tier]}"></span>
+          <a href="${c.url}" target="_blank" rel="noopener" class="card-name">${c.name}</a>
+        </div>
+        <div class="card-tag">${c.tag}</div>
+        <div class="card-bottom">
+          <div class="tier-badge">
+            <span style="color:${TIER_COLORS[c.tier]}">${TIER_LABELS[c.tier]}</span>
+          </div>
+          <div class="card-actions">
+            <a href="${c.careers}" target="_blank" rel="noopener" class="careers-link">careers →</a>
+            <button class="status-btn ${s}" onclick="cycleStatus(${c.id})">${STATUS_LABELS[s]}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function render() { renderStats(); renderFilters(); renderTable(); }
+function setFilter(f) { activeFilter = f; render(); }
+function handleSearch() { searchText = document.getElementById('searchInput').value; render(); }
+
+render();
+</script>
+</body>
+</html>
