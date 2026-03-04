@@ -63,7 +63,9 @@ function ShareForm() {
   }, [incomingUrl]);
 
   useEffect(() => {
-    fetchCompanies();
+    (async () => {
+      await fetchCompanies();
+    })();
   }, [fetchCompanies]);
 
   useEffect(() => {

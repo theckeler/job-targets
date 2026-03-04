@@ -185,7 +185,7 @@ export default function TrackerPage() {
   return (
     <>
       <div className="min-h-screen bg-[#0a0f1e] pb-24">
-        <div className="bg-sky-600 p-2">
+        <div className="bg-sky-600 p-2 pt-12">
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-col">
               <h1 className="text-lg font-bold tracking-tight leading-none">
