@@ -1,0 +1,195 @@
+"use client";
+
+import type { CompanyWithJobs, Job } from "@/lib/db";
+import { cn } from "@/src/lib/utils";
+import {
+  BellIcon,
+  ChevronDown,
+  ChevronUp,
+  LayersPlus,
+  Link2,
+  Trash,
+} from "lucide-react";
+import { Button } from "./button";
+
+const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
+type Status = (typeof STATUS_CYCLE)[number];
+
+const STATUS_STYLES: Record<Status, string> = {
+  new: "text-purple-400",
+  interested: "text-yellow-400",
+  submitted: "text-emerald-400",
+  skip: "text-red-400",
+};
+
+const TIER_DOT: Record<number, string> = {
+  1: "bg-blue-500",
+  2: "bg-emerald-500",
+  3: "bg-amber-500",
+  4: "bg-orange-500",
+  5: "bg-slate-400",
+};
+
+type JobsProps = {
+  loading: boolean;
+  company: CompanyWithJobs;
+  isExpanded: boolean;
+  toggleExpand: (id: number) => void;
+  newCount: number;
+  openSheet: (company: CompanyWithJobs) => void;
+  cycleJobStatus: (job: Job) => void;
+  setDeleteConfirm: (confirm: { id: number; title: string } | null) => void;
+};
+
+export default function Jobs({
+  loading,
+  company,
+  isExpanded,
+  toggleExpand,
+  newCount,
+  openSheet,
+  cycleJobStatus,
+  setDeleteConfirm,
+}: JobsProps) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-white">loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div key={company.id} className="bg-slate-900 rounded">
+      {/* Company row */}
+      <div
+        className="flex justify-between items-center gap-2 px-2 py-3 cursor-pointer"
+        onClick={() => toggleExpand(company.id)}
+      >
+        <div className="flex gap-2 items-center">
+          <span
+            className={`w-4 h-1 rounded-full shrink-0 ${TIER_DOT[company.tier]}`}
+          />
+
+          <div className="font-semibold text-white truncate leading-tight">
+            {company.name}
+          </div>
+
+          {company.jobs.length > 0 && (
+            <Button
+              className={`select-none ${isExpanded ? "text-red-500" : "text-white/20"} ml-2`}
+            >
+              {company.jobs.length}
+            </Button>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          {newCount > 0 && (
+            <Button className="relative bg-purple-400">
+              <BellIcon />
+              <span className="absolute right-1 top-1 rounded-full w-5 h-5 bg-black text-white flex items-center justify-center text-xs">
+                {newCount}
+              </span>
+            </Button>
+          )}
+
+          {company.careers_url && (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(company.careers_url, "_blank");
+              }}
+              className="text-yellow-500"
+            >
+              <Link2 />
+            </Button>
+          )}
+
+          <Button
+            className="text-green-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              openSheet(company);
+            }}
+          >
+            <LayersPlus />
+          </Button>
+
+          <Button
+            className={cn(isExpanded ? "text-white/80" : "text-white/30")}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand(company.id);
+            }}
+          >
+            {isExpanded ? <ChevronUp /> : <ChevronDown />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Expanded jobs */}
+      {isExpanded && (
+        <div className="border-t border-[#1e293b]">
+          {company.jobs.length === 0 ? (
+            <div className="px-4 py-4 flex items-center justify-between">
+              <span className="text-xs text-orange-500 font-medium border border-orange-500 rounded px-2 py-1">
+                No jobs logged yet
+              </span>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-500">
+              {company.jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="p-2 flex justify-between items-center gap-1"
+                >
+                  {job.url ? (
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-white block truncate font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {job.title || job.url}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-white block truncate font-medium">
+                      {job.title}
+                    </span>
+                  )}
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      onClick={() => cycleJobStatus(job)}
+                      className={cn(
+                        "",
+                        STATUS_STYLES[job.status as Status] ??
+                          STATUS_STYLES.new,
+                      )}
+                    >
+                      {job.status}
+                    </Button>
+
+                    <Button
+                      onClick={() =>
+                        setDeleteConfirm({
+                          id: job.id,
+                          title: job.title || job.url || "this job",
+                        })
+                      }
+                      className="text-red-500"
+                    >
+                      <Trash />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

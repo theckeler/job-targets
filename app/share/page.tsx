@@ -198,7 +198,7 @@ function ShareForm() {
                     }}
                   >
                     {filteredCompanies.slice(0, 8).map((c) => (
-                      <button
+                      <Button
                         key={c.id}
                         className="w-full text-left px-3 py-3 text-sm flex items-center justify-between"
                         style={{ color: "#cbd5e1" }}
@@ -213,7 +213,7 @@ function ShareForm() {
                         <span className="text-xs" style={{ color: "#475569" }}>
                           {TIER_LABELS[c.tier]}
                         </span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -308,7 +308,6 @@ function ShareForm() {
               {saving ? "Saving..." : "Save Job"}
             </Button>
             <Button
-              variant="ghost"
               className="h-11 px-4"
               style={{ color: "#475569" }}
               onClick={() => router.push("/tracker")}

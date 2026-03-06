@@ -137,3 +137,11 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+button {
+  @apply min-h-12 flex items-center justify-center rounded text-sm;
+}
+
+input {
+  @apply w-full rounded border-0 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50;
+}
