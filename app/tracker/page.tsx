@@ -158,12 +158,6 @@ export default function TrackerPage() {
       <div className="min-h-screen bg-[#0a0f1e] pb-24">
         <div className="bg-sky-600 p-2 pt-12">
           <div className="flex items-center justify-between">
-            <div className="flex gap-1 flex-col">
-              <div className="hidden md:flex items-center gap-2">
-                <span className="text-xs">{totalJobs} tracked</span>
-                <span className="text-xs">{submittedCount} submitted</span>
-              </div>
-            </div>
             <div className="flex gap-1">
               <Input
                 className=""

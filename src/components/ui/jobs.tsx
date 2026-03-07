@@ -61,31 +61,20 @@ export default function Jobs({
     <div key={company.id} className="bg-slate-900 rounded">
       {/* Company row */}
       <div
-        className="flex justify-between items-center gap-2 px-2 py-3 cursor-pointer"
+        className="flex flex-auto justify-between items-center gap-2 px-2 py-3 cursor-pointer"
         onClick={() => toggleExpand(company.id)}
       >
-        <div className="flex flex-auto min-w-0 gap-2 items-center">
-          <Button
-            className={cn(`${TIER_DOT[company.tier]}`, "px-0 min-w-8")}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpand(company.id);
-            }}
-          >
-            {isExpanded ? <ChevronDown /> : <ChevronRight />}
-          </Button>
-
-          <div className="font-semibold text-white truncate leading-tight">
-            {company.name}
-          </div>
-
-          {/* {company.jobs.length > 0 && (
-            <Button
-              className={`select-none ${isExpanded ? "text-red-500" : "text-white/20"} ml-2`}
-            >
-              {company.jobs.length}
-            </Button>
-          )} */}
+        <Button
+          className={cn(`${TIER_DOT[company.tier]}`, "px-0 min-w-8")}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleExpand(company.id);
+          }}
+        >
+          {isExpanded ? <ChevronDown /> : <ChevronRight />}
+        </Button>
+        <div className="flex-auto font-semibold text-white truncate leading-tight">
+          {company.name}
         </div>
 
         <div className="flex flex-none gap-2">
