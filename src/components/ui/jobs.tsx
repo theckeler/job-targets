@@ -6,9 +6,8 @@ import {
   BellIcon,
   ChevronDown,
   ChevronRight,
-  LayersPlus,
   Link2,
-  Trash,
+  Trash
 } from "lucide-react";
 import { Button } from "./button";
 
@@ -71,7 +70,7 @@ export default function Jobs({
             className={`w-4 h-1 rounded-full shrink-0 `}
           /> */}
           <Button
-            className={cn(`${TIER_DOT[company.tier]}`, "")}
+            className={cn(`${TIER_DOT[company.tier]}`, "px-0 min-w-8")}
             onClick={(e) => {
               e.stopPropagation();
               toggleExpand(company.id);
@@ -84,18 +83,18 @@ export default function Jobs({
             {company.name}
           </div>
 
-          {company.jobs.length > 0 && (
+          {/* {company.jobs.length > 0 && (
             <Button
               className={`select-none ${isExpanded ? "text-red-500" : "text-white/20"} ml-2`}
             >
               {company.jobs.length}
             </Button>
-          )}
+          )} */}
         </div>
 
         <div className="flex gap-2">
           {newCount > 0 && (
-            <Button className="relative bg-purple-400">
+            <Button className="relative bg-purple-400 px-2">
               <BellIcon />
               <span className="absolute right-1 top-1 rounded-full w-5 h-5 bg-black text-white flex items-center justify-center text-xs">
                 {newCount}
@@ -115,15 +114,15 @@ export default function Jobs({
             </Button>
           )}
 
-          <Button
-            className="text-green-300"
+          {/* <Button
+            className="text-green-300 "
             onClick={(e) => {
               e.stopPropagation();
               openSheet(company);
             }}
           >
             <LayersPlus />
-          </Button>
+          </Button> */}
         </div>
       </div>
 
