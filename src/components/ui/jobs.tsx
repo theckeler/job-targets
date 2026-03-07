@@ -5,7 +5,7 @@ import { cn } from "@/src/lib/utils";
 import {
   BellIcon,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   LayersPlus,
   Link2,
   Trash,
@@ -23,11 +23,11 @@ const STATUS_STYLES: Record<Status, string> = {
 };
 
 const TIER_DOT: Record<number, string> = {
-  1: "bg-blue-500",
-  2: "bg-emerald-500",
-  3: "bg-amber-500",
-  4: "bg-orange-500",
-  5: "bg-slate-400",
+  1: "text-blue-500",
+  2: "text-emerald-500",
+  3: "text-amber-500",
+  4: "text-orange-500",
+  5: "text-slate-400",
 };
 
 type JobsProps = {
@@ -67,9 +67,18 @@ export default function Jobs({
         onClick={() => toggleExpand(company.id)}
       >
         <div className="flex gap-2 items-center">
-          <span
-            className={`w-4 h-1 rounded-full shrink-0 ${TIER_DOT[company.tier]}`}
-          />
+          {/* <span
+            className={`w-4 h-1 rounded-full shrink-0 `}
+          /> */}
+          <Button
+            className={cn(`${TIER_DOT[company.tier]}`, "")}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand(company.id);
+            }}
+          >
+            {isExpanded ? <ChevronDown /> : <ChevronRight />}
+          </Button>
 
           <div className="font-semibold text-white truncate leading-tight">
             {company.name}
@@ -114,16 +123,6 @@ export default function Jobs({
             }}
           >
             <LayersPlus />
-          </Button>
-
-          <Button
-            className={cn(isExpanded ? "text-white/80" : "text-white/30")}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpand(company.id);
-            }}
-          >
-            {isExpanded ? <ChevronUp /> : <ChevronDown />}
           </Button>
         </div>
       </div>
