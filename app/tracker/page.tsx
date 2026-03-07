@@ -61,7 +61,6 @@ export default function TrackerPage() {
     };
   }, []);
 
-
   const filtered = companies
     .filter((c) => {
       if (tierFilter !== "all" && Number(c.tier) !== tierFilter) return false;
@@ -160,10 +159,7 @@ export default function TrackerPage() {
         <div className="bg-sky-600 p-2 pt-12">
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-col">
-              <h1 className="text-lg font-bold tracking-tight leading-none">
-                Job Tracker
-              </h1>
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <span className="text-xs">{totalJobs} tracked</span>
                 <span className="text-xs">{submittedCount} submitted</span>
               </div>

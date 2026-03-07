@@ -7,7 +7,7 @@ import {
   ChevronDown,
   ChevronRight,
   Link2,
-  Trash
+  Trash,
 } from "lucide-react";
 import { Button } from "./button";
 
@@ -46,7 +46,6 @@ export default function Jobs({
   isExpanded,
   toggleExpand,
   newCount,
-  openSheet,
   cycleJobStatus,
   setDeleteConfirm,
 }: JobsProps) {
@@ -65,10 +64,7 @@ export default function Jobs({
         className="flex justify-between items-center gap-2 px-2 py-3 cursor-pointer"
         onClick={() => toggleExpand(company.id)}
       >
-        <div className="flex gap-2 items-center">
-          {/* <span
-            className={`w-4 h-1 rounded-full shrink-0 `}
-          /> */}
+        <div className="flex flex-auto min-w-0 gap-2 items-center">
           <Button
             className={cn(`${TIER_DOT[company.tier]}`, "px-0 min-w-8")}
             onClick={(e) => {
@@ -92,7 +88,7 @@ export default function Jobs({
           )} */}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-none gap-2">
           {newCount > 0 && (
             <Button className="relative bg-purple-400 px-2">
               <BellIcon />
