@@ -28,8 +28,9 @@ export async function GET() {
 - Always wrap in try/catch
 - Always return `{ error: '...' }` with appropriate status on failure
 - Use tagged template literals for all SQL — never string concatenation
-- DELETE uses query params: `DELETE /api/jobs?id=123`
+- DELETE uses query params: `DELETE /api/jobs?id=123`, `DELETE /api/companies?id=123`
 - PATCH uses request body JSON
+- Company DELETE cascades — deletes all jobs for that company first, then the company
 
 ---
 
@@ -149,6 +150,58 @@ NODE_PATH=/usr/local/lib/node_modules node scripts/db.js update-job --id=5 --sta
 ```
 
 Never use the pooled `POSTGRES_URL` for Claude sessions — use `POSTGRES_URL_NON_POOLING` only.
+
+---
+
+## Scrape-on-Blur Pattern
+
+Both add-job and add-company sheets auto-fill fields by scraping a pasted URL on blur. The pattern:
+
+```ts
+async function scrapeUrl(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed || !trimmed.startsWith("http")) return;
+  setScraping(true);
+  try {
+    const res = await fetch(`/api/scrape?url=${encodeURIComponent(trimmed)}`);
+    const data = await res.json();
+    if (data.jobTitle && !title) setTitle(data.jobTitle);  // only if field is empty
+  } catch {
+    // silent fail — user fills manually
+  } finally {
+    setScraping(false);
+  }
+}
+
+// Attach to input:
+<Input onBlur={(e) => scrapeUrl(e.target.value)} />
+```
+
+Rules:
+- Always check `!trimmed.startsWith("http")` before fetching — skip partial URLs
+- Only set the field if it's currently empty (`!title`, `!name`) — don't overwrite user input
+- Show a placeholder like `"Fetching title..."` and disable the field while `scraping === true`
+- Disable Save button while scraping
+- Never throw — catch and silently continue
+
+---
+
+## Bottom Sheet Components
+
+Both `new-job.tsx` and `new-company.tsx` use the shared `Modal` component with `modalType="bottom"`. Pattern:
+
+```tsx
+<Modal
+  title="Add Company"
+  action={onClose}          // backdrop click closes
+  modalType="bottom"
+  footerActions={<>...</>}
+>
+  {/* form fields */}
+</Modal>
+```
+
+Reset all fields in the `useEffect` when open/sheet prop goes falsy. Focus the first input with `useRef` + `setTimeout(..., 100)` to let the sheet animate in before keyboard opens.
 
 ---
 

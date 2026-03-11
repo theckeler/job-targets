@@ -25,8 +25,9 @@ A private, password-protected Next.js web app for tracking job applications. Pri
 job-targets/
 ├── app/
 │   ├── api/
-│   │   ├── companies/route.ts   # GET all companies+jobs, POST new company
+│   │   ├── companies/route.ts   # GET all companies+jobs, POST new company, DELETE company+jobs
 │   │   ├── jobs/route.ts        # POST add job, PATCH update, DELETE remove
+│   │   ├── scrape/route.ts      # GET scrape a URL → returns jobTitle + company name
 │   │   └── login/route.ts       # POST sets auth cookie
 │   ├── login/page.tsx           # Password gate UI
 │   ├── tracker/page.tsx         # Main tracker UI (client component)
@@ -36,7 +37,11 @@ job-targets/
 ├── lib/
 │   └── db.ts                    # @vercel/postgres sql client + TypeScript types
 ├── src/
-│   └── components/ui/           # shadcn components (Button, Input, Badge, Select)
+│   ├── components/
+│   │   ├── ui/                  # shadcn components (Button, Input, Badge, Select)
+│   │   ├── modal.tsx            # Reusable modal (center or bottom sheet)
+│   │   ├── new-job.tsx          # Add job bottom sheet — scrapes title from URL on blur
+│   │   └── new-company.tsx      # Add company bottom sheet — scrapes name from URL on blur
 ├── middleware.ts                 # Auth gate — redirects to /login if no valid cookie
 ├── seed.sql                     # Schema + 180 companies + ~46 real applications
 ├── .env.local                   # Local env vars (never committed)
@@ -69,10 +74,27 @@ jobs (
   salary_range  VARCHAR(255),
   match_quality VARCHAR(100),       -- EXCELLENT | GOOD | BORDERLINE etc.
   date_applied  DATE,
+  location      VARCHAR(255),       -- e.g. "Remote - US"
+  target_salary VARCHAR(255),       -- e.g. "$180,000 - $220,000"
+  key_highlights TEXT[],            -- array of highlight strings
   created_at    TIMESTAMP,
   updated_at    TIMESTAMP
 )
 ```
+
+---
+
+## Scrape Endpoint
+
+`GET /api/scrape?url=<encoded-url>` — server-side fetch of any URL. Returns:
+
+```json
+{ "jobTitle": "Senior Frontend Engineer", "company": "Stripe", "ogTitle": "...", "pageTitle": "...", "h1": "..." }
+```
+
+Runs server-side to avoid CORS. Pulls `og:title`, `og:site_name`, `<h1>`, and `<title>` tags. Strips common suffixes ("Title | Company", "Title - Company") to isolate the job title. 8-second timeout. Fails silently — fields stay blank if scrape fails.
+
+Used by `new-job.tsx` (auto-fills title on URL blur) and `new-company.tsx` (auto-fills company name on URL blur).
 
 ---
 

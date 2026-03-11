@@ -1,55 +1,62 @@
 # STATUS.md — Current State
 
-_Updated: 2026-03-04_
+_Updated: 2026-03-10_
 
 ---
 
 ## What's Working
 
-- Next.js app scaffolded and building
-- Neon DB provisioned, env vars in `.env.local`
-- `tsconfig.json` `@/` alias fixed (was pointing to `./src/*`, now `"./*"`)
+**Core app**
+- Next.js app deployed on Vercel, auto-deploys on push to main
+- Neon DB live — 228 companies, 122 jobs migrated from job-log.json
 - Auth middleware in place — cookie-based, 30-day session
-- All API routes written: GET/POST companies, POST/PATCH/DELETE jobs, POST login
-- Tracker UI renders — expandable cards, status cycling, add job inline, delete job
-- `seed.sql` written with schema + 180 companies + ~46 real applications
+- All API routes: GET/POST/DELETE companies, POST/PATCH/DELETE jobs, POST login, GET scrape
 
-## What's NOT Confirmed Yet
+**Tracker UI**
+- Expandable company cards with job lists
+- Status cycling (new → interested → submitted → skip) via tap
+- Add job bottom sheet — auto-fills title by scraping pasted URL on blur
+- Add company bottom sheet — auto-fills company name by scraping pasted URL on blur, tier picker
+- Delete job with yes/no confirm modal
+- Delete company with yes/no confirm modal (cascades — removes all its jobs too)
+- Search by company name or tag
+- Filter by tier and status — pill buttons
+- Bell badge on companies with `new` jobs
 
-- **DB not confirmed seeded** — seed.sql needs to be run in Neon console
-- **App not confirmed running on phone** — needs to be verified on mobile browser
-- **Vercel deployment status unknown** — `TRACKER_PASSWORD` and `AUTH_SECRET` may not be in Vercel dashboard env vars yet
+**PWA / Mobile**
+- Installed as home screen app on iPhone
+- All links stay inside the PWA webview — no Safari handoff
+- `window.location.href` used throughout (no `target="_blank"`)
 
-## Known Issues / Bugs
+**Scraping**
+- `/api/scrape` server-side endpoint — no CORS issues
+- Pulls `og:title`, `og:site_name`, `<h1>`, `<title>` tags
+- Strips " | Company" / " - Company" suffixes from job titles
+- Fails silently if site blocks or times out
 
-- **Filter controls are dropdowns** — should be pill buttons like the HTML prototype for better mobile UX
-- **UI doesn't match HTML prototype** — Outfit/DM Mono fonts, color scheme, and layout from orig-html/job-targets.html not yet applied to the React app
+---
 
-## Confirmed This Session
+## DB State
 
-- DB connected and seeded: 180 companies, 26 jobs live in Neon
-- Claude can read/write DB directly via Desktop Commander using `NODE_PATH=/usr/local/lib/node_modules node`
-- `pg` installed globally at `/usr/local/lib/node_modules`
-- Use `POSTGRES_URL_NON_POOLING` for all Claude direct DB access
+- 228 companies across 5 tiers
+- 122 jobs: 54 submitted, 4 interested, 64 new
+- All jobs have `location`, `target_salary`, `key_highlights` columns populated where available
+- Full migration from job-log.json complete
 
-## Fixed This Session
+---
 
-- Careers link now visible on mobile (removed `hidden sm:block`)
-- Removed debug `console.log({ companies })` from tracker/page.tsx
+## Known Limitations
 
-## Next Up (Session 2)
+- Scraping doesn't work on sites that require JavaScript to render (e.g. some Workday postings) — title field stays blank, fill manually
+- Some job boards (LinkedIn, Glassdoor) block server-side fetch — scrape returns empty, fill manually
+- No bulk import UI — large additions still done via SQL or Claude direct DB write
 
-1. Confirm DB is seeded — run seed.sql in Neon console if not done
-2. Verify app running locally and on phone
-3. Restyle to match HTML prototype (Outfit/DM Mono fonts, colors, pill filters)
+---
 
-## Backlog (Future Sessions)
+## Backlog
 
-- Swipe-to-reveal actions on mobile
-- PWA manifest + home screen install
-- Share Target (pipe URLs from Safari into app)
-- AI desktop workflow — Claude reads `status='new'` jobs from DB, presents for review
-- Apply process workflow (to be defined)
-- Add/remove companies from UI
-- Inline tag editing
-- README.md
+- Swipe-to-reveal actions on mobile (delete/status without expanding)
+- Inline tag editing on company rows
+- Edit existing job details (title, salary, notes)
+- Add new company from /share page (type name with no match → "Add as new company")
+- AI desktop workflow — Claude reads `status='new'` jobs, presents for review

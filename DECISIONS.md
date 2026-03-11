@@ -83,3 +83,20 @@ The pooled URL (`POSTGRES_URL`) is managed by pgbouncer and expects short-lived 
 - No real-time sync — manual refresh is fine for a personal tool
 - No pagination — 180 companies is manageable with filtering/search
 - No dark mode — unnecessary complexity for now
+
+---
+
+## PWA / Mobile Decisions
+
+**`window.location.href` over `window.open(..., "_blank")` for all links**
+When the app is installed as a PWA (Add to Home Screen), `_blank` links hand off to Safari — every tap opens a new Safari tab and the user loses their place. Using `window.location.href` keeps navigation inside the app's standalone webview. The back gesture returns to the tracker. This applies to both careers page links and job URL links.
+
+---
+
+## URL Scraping Decision
+
+**Server-side fetch in `/api/scrape` over client-side fetch**
+Client-side requests to external URLs (job boards, company sites) fail with CORS errors because those sites don't allow arbitrary cross-origin requests. Running the fetch from a Next.js API route runs it on the server, which has no CORS restrictions. Simple regex extraction of `og:title`, `og:site_name`, `<h1>`, and `<title>` is sufficient — no headless browser needed. 8-second timeout with silent failure keeps the UX smooth.
+
+**Auto-fill only if field is empty**
+The scrape result fills title/company only if the user hasn't already typed something. Prevents overwriting intentional manual input.

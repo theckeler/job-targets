@@ -9,10 +9,13 @@ Private job application tracker. Browse target companies, log job URLs from your
 
 ## What It Does
 
-- 180 pre-seeded target companies organized by tier (Dream → Brand)
-- Log job postings as you find them — title, URL, salary range
+- 228 pre-seeded target companies organized by tier (Dream → Brand)
+- Log job postings as you find them — paste a URL and title auto-fills from the page
+- Add new companies on the fly — paste a URL and company name auto-fills
+- Delete companies or jobs with a confirm prompt
 - Status tracking: new → interested → submitted → skip
 - Search and filter by tier or status
+- Installed as a PWA — stays in the app's browser, no Safari handoff
 - Mobile-friendly for browsing at night, desktop-ready for AI-assisted review
 
 ---
