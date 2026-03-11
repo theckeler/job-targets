@@ -38,6 +38,10 @@ export default function TrackerPage() {
     id: number;
     title: string;
   } | null>(null);
+  const [deleteCompanyConfirm, setDeleteCompanyConfirm] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   // Add job sheet
   const [sheet, setSheet] = useState<AddJobSheet | null>(null);
@@ -98,6 +102,13 @@ export default function TrackerPage() {
     if (!deleteConfirm) return;
     await fetch(`/api/jobs?id=${deleteConfirm.id}`, { method: "DELETE" });
     setDeleteConfirm(null);
+    loadCompanies(false);
+  }
+
+  async function deleteCompany() {
+    if (!deleteCompanyConfirm) return;
+    await fetch(`/api/companies?id=${deleteCompanyConfirm.id}`, { method: "DELETE" });
+    setDeleteCompanyConfirm(null);
     loadCompanies(false);
   }
 
@@ -213,6 +224,7 @@ export default function TrackerPage() {
                 openSheet={openSheet}
                 cycleJobStatus={cycleJobStatus}
                 setDeleteConfirm={setDeleteConfirm}
+                setDeleteCompanyConfirm={setDeleteCompanyConfirm}
               />
             );
           })}
@@ -245,6 +257,35 @@ export default function TrackerPage() {
           <p className="text-red-500">
             {" "}
             you sure you want to delete {deleteConfirm.title}?
+          </p>
+        </Modal>
+      )}
+
+      {/* Delete company confirm modal */}
+      {deleteCompanyConfirm && (
+        <Modal
+          title="Delete Company?"
+          action={() => setDeleteCompanyConfirm(null)}
+          footerActions={
+            <>
+              <Button
+                onClick={deleteCompany}
+                className="flex-1 bg-red-600 text-white"
+              >
+                Delete
+              </Button>
+
+              <Button
+                onClick={() => setDeleteCompanyConfirm(null)}
+                className="flex-1 bg-slate-800 text-slate-300"
+              >
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          <p className="text-red-500">
+            you sure you want to delete {deleteCompanyConfirm.name}? this will also delete all its jobs.
           </p>
         </Modal>
       )}

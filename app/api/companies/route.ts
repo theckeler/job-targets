@@ -24,6 +24,20 @@ export async function GET() {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 })
+    await sql`DELETE FROM jobs WHERE company_id = ${id}`
+    await sql`DELETE FROM companies WHERE id = ${id}`
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { name, url, careers_url, tier = 3, tag = '', sort_order = 999 } = await req.json()

@@ -38,6 +38,7 @@ type JobsProps = {
   openSheet: (company: CompanyWithJobs) => void;
   cycleJobStatus: (job: Job) => void;
   setDeleteConfirm: (confirm: { id: number; title: string } | null) => void;
+  setDeleteCompanyConfirm: (confirm: { id: number; name: string } | null) => void;
 };
 
 export default function Jobs({
@@ -48,6 +49,7 @@ export default function Jobs({
   newCount,
   cycleJobStatus,
   setDeleteConfirm,
+  setDeleteCompanyConfirm,
 }: JobsProps) {
   if (loading) {
     return (
@@ -91,13 +93,23 @@ export default function Jobs({
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(company.careers_url, "_blank");
+                window.location.href = company.careers_url!;
               }}
               className="text-yellow-500"
             >
               <Link2 />
             </Button>
           )}
+
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteCompanyConfirm({ id: company.id, name: company.name });
+            }}
+            className="text-red-500"
+          >
+            <Trash />
+          </Button>
 
           {/* <Button
             className="text-green-300 "
@@ -130,8 +142,6 @@ export default function Jobs({
                   {job.url ? (
                     <a
                       href={job.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="text-sm text-white block truncate font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
