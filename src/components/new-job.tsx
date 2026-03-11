@@ -23,9 +23,9 @@ export default function JobSheet({
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [salary, setSalary] = useState("");
+  const [scraping, setScraping] = useState(false);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus URL input when sheet opens, reset fields when it closes
   useEffect(() => {
     if (sheet) {
       setTimeout(() => urlInputRef.current?.focus(), 100);
@@ -33,10 +33,26 @@ export default function JobSheet({
       setUrl("");
       setTitle("");
       setSalary("");
+      setScraping(false);
     }
   }, [sheet]);
 
   if (!sheet) return null;
+
+  async function scrapeUrl(raw: string) {
+    const trimmed = raw.trim();
+    if (!trimmed || !trimmed.startsWith("http")) return;
+    setScraping(true);
+    try {
+      const res = await fetch(`/api/scrape?url=${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+      if (data.jobTitle && !title) setTitle(data.jobTitle);
+    } catch {
+      // silent fail — fields stay blank, user fills manually
+    } finally {
+      setScraping(false);
+    }
+  }
 
   function handleSave() {
     if (!url && !title) return;
@@ -53,7 +69,7 @@ export default function JobSheet({
           <Button
             className="bg-green-700 text-white flex-1"
             onClick={handleSave}
-            disabled={saving || (!url && !title)}
+            disabled={saving || scraping || (!url && !title)}
           >
             {saving ? "Saving..." : "Save"}
           </Button>
@@ -69,11 +85,13 @@ export default function JobSheet({
           placeholder="Job URL (paste here)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onBlur={(e) => scrapeUrl(e.target.value)}
         />
         <Input
-          placeholder="Title (optional)"
+          placeholder={scraping ? "Fetching title..." : "Title (optional)"}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          disabled={scraping}
         />
         <Input
           placeholder="Salary range (optional)"

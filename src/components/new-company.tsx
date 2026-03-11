@@ -35,6 +35,7 @@ export default function NewCompany({
   const [careersUrl, setCareersUrl] = useState("");
   const [tier, setTier] = useState<number>(3);
   const [tag, setTag] = useState("");
+  const [scraping, setScraping] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -46,10 +47,26 @@ export default function NewCompany({
       setCareersUrl("");
       setTier(3);
       setTag("");
+      setScraping(false);
     }
   }, [open]);
 
   if (!open) return null;
+
+  async function scrapeUrl(raw: string) {
+    const trimmed = raw.trim();
+    if (!trimmed || !trimmed.startsWith("http")) return;
+    setScraping(true);
+    try {
+      const res = await fetch(`/api/scrape?url=${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+      if (data.company && !name) setName(data.company);
+    } catch {
+      // silent fail
+    } finally {
+      setScraping(false);
+    }
+  }
 
   function handleSave() {
     if (!name.trim()) return;
@@ -78,20 +95,23 @@ export default function NewCompany({
     >
       <div className="space-y-3">
         <Input
-          ref={nameRef}
-          placeholder="Company name (required)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Input
-          placeholder="Homepage URL (optional)"
+          placeholder="Homepage URL (scrapes company name)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onBlur={(e) => scrapeUrl(e.target.value)}
         />
         <Input
           placeholder="Careers page URL (optional)"
           value={careersUrl}
           onChange={(e) => setCareersUrl(e.target.value)}
+          onBlur={(e) => !url && scrapeUrl(e.target.value)}
+        />
+        <Input
+          ref={nameRef}
+          placeholder={scraping ? "Looking up company..." : "Company name (required)"}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={scraping}
         />
         <Input
           placeholder="Tag (optional — e.g. devtools, fintech)"
