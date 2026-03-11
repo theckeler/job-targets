@@ -2,12 +2,13 @@
 
 import type { CompanyWithJobs, Job } from "@/lib/db";
 import Modal from "@/src/components/modal";
+import NewCompany from "@/src/components/new-company";
 import NewJob from "@/src/components/new-job";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import Jobs from "@/src/components/ui/jobs";
 import { fetchData } from "@/src/util/fetchData";
-import { SearchX, SlidersHorizontal } from "lucide-react";
+import { Plus, SearchX, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
@@ -46,6 +47,10 @@ export default function TrackerPage() {
   // Add job sheet
   const [sheet, setSheet] = useState<AddJobSheet | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Add company sheet
+  const [companySheetOpen, setCompanySheetOpen] = useState(false);
+  const [savingCompany, setSavingCompany] = useState(false);
 
   async function loadCompanies(ignore: boolean) {
     const data = await fetchData("/api/companies");
@@ -112,6 +117,24 @@ export default function TrackerPage() {
     loadCompanies(false);
   }
 
+  async function addCompany(data: {
+    name: string;
+    url: string;
+    careers_url: string;
+    tier: number;
+    tag: string;
+  }) {
+    setSavingCompany(true);
+    await fetch("/api/companies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    setCompanySheetOpen(false);
+    setSavingCompany(false);
+    loadCompanies(false);
+  }
+
   async function addJob(url: string, title: string, salary: string) {
     if (!sheet) return;
     setSaving(true);
@@ -169,7 +192,7 @@ export default function TrackerPage() {
       <div className="min-h-screen bg-[#0a0f1e] pb-24">
         <div className="bg-sky-600 p-2 pt-12">
           <div className="flex items-center justify-between">
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-1">
               <Input
                 className=""
                 placeholder="Search companies..."
@@ -196,6 +219,13 @@ export default function TrackerPage() {
                 <SlidersHorizontal />
               </Button>
             </div>
+
+            <Button
+              onClick={() => setCompanySheetOpen(true)}
+              className="ml-2 text-green-400"
+            >
+              <Plus />
+            </Button>
           </div>
         </div>
 
@@ -373,6 +403,14 @@ export default function TrackerPage() {
           addJob={addJob}
         />
       )}
+
+      {/* Add company sheet */}
+      <NewCompany
+        open={companySheetOpen}
+        onClose={() => setCompanySheetOpen(false)}
+        onSave={addCompany}
+        saving={savingCompany}
+      />
     </>
   );
 }
