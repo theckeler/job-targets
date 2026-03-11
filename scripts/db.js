@@ -16,7 +16,7 @@
 import { Client } from "pg";
 
 const CONN =
-  "postgresql://neondb_owner:REDACTED@ep-sweet-bar-aiaksyfs.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require";
+  process.env.POSTGRES_URL_NON_POOLING;
 
 // Parse --key=value or --key value args
 function parseArgs(argv) {

@@ -133,7 +133,7 @@ Always use `NODE_PATH=/usr/local/lib/node_modules` and `POSTGRES_URL_NON_POOLING
 
 ```js
 // scripts/db.js — reusable helper
-const CONN = 'postgresql://neondb_owner:...@ep-sweet-bar-aiaksyfs.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const CONN = process.env.POSTGRES_URL_NON_POOLING;
 ```
 
 Common operations via Desktop Commander:
