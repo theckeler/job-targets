@@ -9,12 +9,10 @@ import {
   Link2,
   Trash,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "./button";
 
-const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
-type Status = (typeof STATUS_CYCLE)[number];
-
-const STATUS_STYLES: Record<Status, string> = {
+const STATUS_STYLES: Record<string, string> = {
   new: "text-purple-400",
   interested: "text-yellow-400",
   submitted: "text-emerald-400",
@@ -38,7 +36,9 @@ type JobsProps = {
   openSheet: (company: CompanyWithJobs) => void;
   cycleJobStatus: (job: Job) => void;
   setDeleteConfirm: (confirm: { id: number; title: string } | null) => void;
-  setDeleteCompanyConfirm: (confirm: { id: number; name: string } | null) => void;
+  setDeleteCompanyConfirm: (
+    confirm: { id: number; name: string } | null,
+  ) => void;
 };
 
 export default function Jobs({
@@ -51,6 +51,14 @@ export default function Jobs({
   setDeleteConfirm,
   setDeleteCompanyConfirm,
 }: JobsProps) {
+  const cycleColors = [
+    "bg-red-900",
+    "bg-yellow-900",
+    "bg-green-900",
+    "bg-blue-900",
+  ];
+  const [cycleColor, setCycleColor] = useState(0);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -93,9 +101,13 @@ export default function Jobs({
             <Button
               onClick={(e) => {
                 e.stopPropagation();
+                setCycleColor(cycleColor + 1);
                 window.location.href = company.careers_url!;
               }}
-              className="text-yellow-500"
+              className={cn(
+                cycleColors[cycleColor % cycleColors.length],
+                "text-yellow-500",
+              )}
             >
               <Link2 />
             </Button>
