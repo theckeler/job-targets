@@ -112,9 +112,7 @@ export default function TrackerPage() {
 
   async function deleteCompany() {
     if (!deleteCompanyConfirm) return;
-    await fetch(`/api/companies?id=${deleteCompanyConfirm.id}`, {
-      method: "DELETE",
-    });
+    await fetch(`/api/companies?id=${deleteCompanyConfirm.id}`, { method: "DELETE" });
     setDeleteCompanyConfirm(null);
     loadCompanies(false);
   }
@@ -317,8 +315,7 @@ export default function TrackerPage() {
           }
         >
           <p className="text-red-500">
-            you sure you want to delete {deleteCompanyConfirm.name}? this will
-            also delete all its jobs.
+            you sure you want to delete {deleteCompanyConfirm.name}? this will also delete all its jobs.
           </p>
         </Modal>
       )}
