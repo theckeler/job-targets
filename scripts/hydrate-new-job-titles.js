@@ -5,8 +5,6 @@
  *   zsh -lc 'set -a; source .env.local; set +a; node scripts/hydrate-new-job-titles.js'
  */
 
-const { Client } = require("pg");
-
 const CONN = process.env.POSTGRES_URL_NON_POOLING;
 if (!CONN) {
   console.error("Missing POSTGRES_URL_NON_POOLING");
@@ -114,6 +112,7 @@ function looksBad(title) {
 }
 
 async function main() {
+  const { Client } = await import("pg");
   const client = new Client({ connectionString: CONN });
   await client.connect();
 
@@ -158,4 +157,3 @@ main().catch((e) => {
   console.error("Error:", e?.message || e);
   process.exit(1);
 });
-

@@ -137,6 +137,8 @@ Always use `NODE_PATH=/usr/local/lib/node_modules` and `POSTGRES_URL_NON_POOLING
 const CONN = process.env.POSTGRES_URL_NON_POOLING;
 ```
 
+**Note:** Repo lint rules forbid `require()`-style imports (even in scripts). For Node scripts, prefer `await import("...")` inside `main()`.
+
 Common operations via Desktop Commander:
 
 ```bash
