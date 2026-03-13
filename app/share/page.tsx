@@ -28,15 +28,24 @@ function ShareForm() {
   const router = useRouter();
   const params = useSearchParams();
   const incomingUrl = params.get("url") || "";
+  const incomingTitle = params.get("title") || "";
+  const incomingText = params.get("text") || "";
+
+  const derivedUrl = (() => {
+    if (incomingUrl) return incomingUrl;
+    const match = incomingText.match(/https?:\/\/[^\s]+/i);
+    return match?.[0] || "";
+  })();
 
   const [companies, setCompanies] = useState<MatchedCompany[]>([]);
   const [matched, setMatched] = useState<MatchedCompany | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [companySearch, setCompanySearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [jobUrl, setJobUrl] = useState(incomingUrl);
-  const [title, setTitle] = useState("");
+  const [jobUrl, setJobUrl] = useState(derivedUrl);
+  const [title, setTitle] = useState(incomingTitle);
   const [salary, setSalary] = useState("");
+  const [scraping, setScraping] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -84,6 +93,21 @@ function ShareForm() {
   const filteredCompanies = companies.filter((c) =>
     c.name.toLowerCase().includes(companySearch.toLowerCase()),
   );
+
+  async function scrapeUrl(raw: string) {
+    const trimmed = raw.trim();
+    if (!trimmed || !trimmed.startsWith("http")) return;
+    setScraping(true);
+    try {
+      const res = await fetch(`/api/scrape?url=${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+      if (data.jobTitle && !title) setTitle(data.jobTitle);
+    } catch {
+      // silent fail
+    } finally {
+      setScraping(false);
+    }
+  }
 
   async function handleSave() {
     if (!selectedId) {
@@ -227,17 +251,39 @@ function ShareForm() {
             >
               Job URL
             </label>
-            <Input
-              className="h-11 text-sm"
-              style={{
-                backgroundColor: "#1e293b",
-                borderColor: "#334155",
-                color: "#f1f5f9",
-              }}
-              placeholder="https://..."
-              value={jobUrl}
-              onChange={(e) => setJobUrl(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Input
+                className="h-11 text-sm flex-1"
+                style={{
+                  backgroundColor: "#1e293b",
+                  borderColor: "#334155",
+                  color: "#f1f5f9",
+                }}
+                placeholder="https://..."
+                value={jobUrl}
+                onChange={(e) => setJobUrl(e.target.value)}
+                onBlur={(e) => scrapeUrl(e.target.value)}
+              />
+              <Button
+                className="h-11 px-4"
+                style={{ color: "#cbd5e1" }}
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText();
+                        const match = text.match(/https?:\/\/\S+/i);
+                        const url = match?.[0] || "";
+                        if (url) {
+                          setJobUrl(url);
+                          scrapeUrl(url);
+                    }
+                  } catch {
+                    // ignore
+                  }
+                }}
+              >
+                Paste
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -263,6 +309,7 @@ function ShareForm() {
               placeholder="Senior Frontend Engineer"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              disabled={scraping}
             />
           </div>
 
@@ -303,7 +350,7 @@ function ShareForm() {
               className="flex-1 h-11 font-medium"
               style={{ backgroundColor: "#f1f5f9", color: "#0f172a" }}
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || scraping}
             >
               {saving ? "Saving..." : "Save Job"}
             </Button>

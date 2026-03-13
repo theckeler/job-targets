@@ -31,6 +31,7 @@ export async function GET() {
 - DELETE uses query params: `DELETE /api/jobs?id=123`, `DELETE /api/companies?id=123`
 - PATCH uses request body JSON
 - Company DELETE cascades — deletes all jobs for that company first, then the company
+- Company PATCH uses COALESCE to support partial updates
 
 ---
 
@@ -140,13 +141,13 @@ Common operations via Desktop Commander:
 
 ```bash
 # Pull new jobs for AI review
-NODE_PATH=/usr/local/lib/node_modules node scripts/db.js new-jobs
+zsh -lc 'set -a; source .env.local; set +a; node scripts/db.js new-jobs'
 
 # Add a job directly
-NODE_PATH=/usr/local/lib/node_modules node scripts/db.js add-job --company="Linear" --title="Staff Engineer" --url="https://..."
+zsh -lc 'set -a; source .env.local; set +a; node scripts/db.js add-job --company="Linear" --title="Staff Engineer" --url="https://..."'
 
 # Update a job status
-NODE_PATH=/usr/local/lib/node_modules node scripts/db.js update-job --id=5 --status="submitted"
+zsh -lc 'set -a; source .env.local; set +a; node scripts/db.js update-job --id=5 --status="submitted"'
 ```
 
 Never use the pooled `POSTGRES_URL` for Claude sessions — use `POSTGRES_URL_NON_POOLING` only.
@@ -183,6 +184,11 @@ Rules:
 - Show a placeholder like `"Fetching title..."` and disable the field while `scraping === true`
 - Disable Save button while scraping
 - Never throw — catch and silently continue
+
+Scrape response (best effort):
+- `jobTitle`: from JSON-LD `JobPosting` or common tags
+- `company`: from JSON-LD or `og:site_name`
+- `description`: from JSON-LD or meta description (may be empty on JS-heavy job boards)
 
 ---
 

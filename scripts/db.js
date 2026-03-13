@@ -1,8 +1,8 @@
 /**
- * db.js — Claude direct DB access helper
+ * db.js — direct DB access helper
  *
  * Run with:
- *   NODE_PATH=/usr/local/lib/node_modules node scripts/db.js <command> [options]
+ *   zsh -lc 'set -a; source .env.local; set +a; node scripts/db.js <command> [options]'
  *
  * Commands:
  *   status          Show counts: companies, jobs by status
@@ -12,8 +12,6 @@
  *   update-job      Update a job (--id, --status, --title, --url, --notes)
  *   add-company     Add a company (--name, --url, --careers, --tier, --tag)
  */
-
-import { Client } from "pg";
 
 const CONN =
   process.env.POSTGRES_URL_NON_POOLING;
@@ -33,6 +31,7 @@ function parseArgs(argv) {
 async function run() {
   const [, , command, ...rest] = process.argv;
   const args = parseArgs(rest);
+  const { Client } = await import("pg");
   const client = new Client({ connectionString: CONN });
 
   await client.connect();

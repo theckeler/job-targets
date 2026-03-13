@@ -2,8 +2,10 @@
 
 Private job application tracker. Browse target companies, log job URLs from your phone, review and process them on desktop with AI.
 
-**Live:** (add Vercel URL here once deployed)  
+**Live:** https://job-targets.vercel.app  
 **Access:** Password protected — set `TRACKER_PASSWORD` in env
+
+**Case study:** `CASE_STUDY.md`
 
 ---
 
@@ -17,6 +19,17 @@ Private job application tracker. Browse target companies, log job URLs from your
 - Search and filter by tier or status
 - Installed as a PWA — stays in the app's browser, no Safari handoff
 - Mobile-friendly for browsing at night, desktop-ready for AI-assisted review
+
+---
+
+## Mobile Capture Flow (iPhone)
+
+1. Install the PWA: Safari → Share → "Add to Home Screen"
+2. Browse company career sites inside the PWA
+3. When you find a job:
+   - Share the job URL to the tracker (best effort via share target), or copy link and paste into `/share`
+4. Select company, hit Save → job is created as `status='new'`
+5. Keep browsing, then close the in-app browser tab and return to the tracker
 
 ---
 

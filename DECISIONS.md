@@ -37,8 +37,14 @@ One tap to advance status: new → interested → submitted → skip → new. Fa
 **Tier filter as pills (planned) over dropdowns (current)**
 The original HTML prototype used pill buttons. They're faster to tap on mobile and visually cleaner. The current shadcn Select dropdowns are a temporary state — will be replaced with pills.
 
-**Careers link always visible (planned)**
-Currently hidden on mobile (`hidden sm:block`). The whole point of this app on mobile is to browse companies and open the careers page. This is a bug that needs fixing.
+**Careers link always visible**
+The whole point of this app on mobile is to browse companies and open the careers page. Keep the link button visible (and use in-app navigation only) to avoid Safari handoff.
+
+**3-dot menu over always-visible destructive icons**
+On iPhone, space is limited. Put Edit/Delete under a `...` menu to reduce visual noise and prevent accidental deletes.
+
+**"Resume where I left off"**
+Track the last touched company and scroll to it on load (when no filters are active). This makes the app usable as a nightly browse session without having to remember where you stopped.
 
 ---
 
@@ -88,8 +94,11 @@ The pooled URL (`POSTGRES_URL`) is managed by pgbouncer and expects short-lived 
 
 ## PWA / Mobile Decisions
 
-**`window.location.href` over `window.open(..., "_blank")` for all links**
-When the app is installed as a PWA (Add to Home Screen), `_blank` links hand off to Safari — every tap opens a new Safari tab and the user loses their place. Using `window.location.href` keeps navigation inside the app's standalone webview. The back gesture returns to the tracker. This applies to both careers page links and job URL links.
+**`window.location.assign(...)` over `window.open(..., "_blank")` for all links**
+When the app is installed as a PWA (Add to Home Screen), `_blank` links hand off to Safari — every tap opens a new Safari tab and the user loses their place. Using `window.location.assign(...)` keeps navigation inside the app's standalone webview. The back gesture returns to the tracker. This applies to both careers page links and job URL links.
+
+**PWA share target (best effort)**
+Declare a `share_target` in the manifest to accept shared URLs directly into `/share`. iOS support varies depending on how the share is initiated (Share Sheet vs Shortcuts).
 
 ---
 

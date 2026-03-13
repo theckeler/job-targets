@@ -25,11 +25,13 @@ A private, password-protected Next.js web app for tracking job applications. Pri
 job-targets/
 ├── app/
 │   ├── api/
-│   │   ├── companies/route.ts   # GET all companies+jobs, POST new company, DELETE company+jobs
+│   │   ├── companies/route.ts   # GET all companies+jobs, POST new company, PATCH update, DELETE company+jobs
 │   │   ├── jobs/route.ts        # POST add job, PATCH update, DELETE remove
-│   │   ├── scrape/route.ts      # GET scrape a URL → returns jobTitle + company name
+│   │   ├── scrape/route.ts      # GET scrape a URL → returns jobTitle + company + description (best effort)
 │   │   └── login/route.ts       # POST sets auth cookie
 │   ├── login/page.tsx           # Password gate UI
+│   ├── share/page.tsx           # Add job from shared URL (company picker)
+│   ├── share-target/route.ts    # PWA share_target POST handler → redirects to /share
 │   ├── tracker/page.tsx         # Main tracker UI (client component)
 │   ├── globals.css              # Tailwind + shadcn CSS vars
 │   ├── layout.tsx               # Root layout, Geist font
@@ -42,6 +44,7 @@ job-targets/
 │   │   ├── modal.tsx            # Reusable modal (center or bottom sheet)
 │   │   ├── new-job.tsx          # Add job bottom sheet — scrapes title from URL on blur
 │   │   └── new-company.tsx      # Add company bottom sheet — scrapes name from URL on blur
+│   │   └── edit-company.tsx     # Edit existing company (name, urls, tier, tag)
 ├── middleware.ts                 # Auth gate — redirects to /login if no valid cookie
 ├── seed.sql                     # Schema + 180 companies + ~46 real applications
 ├── .env.local                   # Local env vars (never committed)
@@ -89,12 +92,26 @@ jobs (
 `GET /api/scrape?url=<encoded-url>` — server-side fetch of any URL. Returns:
 
 ```json
-{ "jobTitle": "Senior Frontend Engineer", "company": "Stripe", "ogTitle": "...", "pageTitle": "...", "h1": "..." }
+{
+  "jobTitle": "Senior Frontend Engineer",
+  "company": "Stripe",
+  "description": "Best-effort short description (JSON-LD or meta tags)",
+  "hasLdJobPosting": true,
+  "ogTitle": "...",
+  "pageTitle": "...",
+  "h1": "..."
+}
 ```
 
 Runs server-side to avoid CORS. Pulls `og:title`, `og:site_name`, `<h1>`, and `<title>` tags. Strips common suffixes ("Title | Company", "Title - Company") to isolate the job title. 8-second timeout. Fails silently — fields stay blank if scrape fails.
 
 Used by `new-job.tsx` (auto-fills title on URL blur) and `new-company.tsx` (auto-fills company name on URL blur).
+
+---
+
+## Share Target (PWA)
+
+The manifest declares a `share_target` so the iOS/Android Share Sheet can route shared URLs directly into the installed app. The handler lives at `app/share-target/route.ts` and redirects to `app/share/page.tsx` with query params.
 
 ---
 

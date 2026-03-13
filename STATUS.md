@@ -1,6 +1,6 @@
 # STATUS.md — Current State
 
-_Updated: 2026-03-10_
+_Updated: 2026-03-13_
 
 ---
 
@@ -10,7 +10,7 @@ _Updated: 2026-03-10_
 - Next.js app deployed on Vercel, auto-deploys on push to main
 - Neon DB live — 228 companies, 122 jobs migrated from job-log.json
 - Auth middleware in place — cookie-based, 30-day session
-- All API routes: GET/POST/DELETE companies, POST/PATCH/DELETE jobs, POST login, GET scrape
+- All API routes: GET/POST/PATCH/DELETE companies, POST/PATCH/DELETE jobs, POST login, GET scrape
 
 **Tracker UI**
 - Expandable company cards with job lists
@@ -19,18 +19,21 @@ _Updated: 2026-03-10_
 - Add company bottom sheet — auto-fills company name by scraping pasted URL on blur, tier picker
 - Delete job with yes/no confirm modal
 - Delete company with yes/no confirm modal (cascades — removes all its jobs too)
+- Edit company (name/URLs/tier/tag) via `...` menu
 - Search by company name or tag
 - Filter by tier and status — pill buttons
 - Bell badge on companies with `new` jobs
+- "Resume where I left off" scroll-to-last-touched company
 
 **PWA / Mobile**
 - Installed as home screen app on iPhone
 - All links stay inside the PWA webview — no Safari handoff
-- `window.location.href` used throughout (no `target="_blank"`)
+- In-app navigation uses `window.location.assign(...)` (no `target="_blank"`)
+- Share target support (best effort): share a job URL into `/share` via `/share-target`
 
 **Scraping**
 - `/api/scrape` server-side endpoint — no CORS issues
-- Pulls `og:title`, `og:site_name`, `<h1>`, `<title>` tags
+- Pulls structured JSON-LD `JobPosting` when available, otherwise `og:*`, meta description, `<h1>`, `<title>`
 - Strips " | Company" / " - Company" suffixes from job titles
 - Fails silently if site blocks or times out
 

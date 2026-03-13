@@ -1,7 +1,9 @@
 "use client";
 
 import type { CompanyWithJobs, Job } from "@/lib/db";
+import type { Company } from "@/lib/db";
 import Modal from "@/src/components/modal";
+import EditCompany from "@/src/components/edit-company";
 import NewCompany from "@/src/components/new-company";
 import NewJob from "@/src/components/new-job";
 import { Button } from "@/src/components/ui/button";
@@ -35,6 +37,16 @@ export default function TrackerPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [filterOpen, setFilterOpen] = useState(false);
+  const [lastCompanyId, setLastCompanyId] = useState<number | null>(() => {
+    try {
+      const raw = localStorage.getItem("jt:lastCompanyId");
+      const id = raw ? Number(raw) : null;
+      if (id && Number.isFinite(id)) return id;
+      return null;
+    } catch {
+      return null;
+    }
+  });
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: number;
     title: string;
@@ -43,6 +55,8 @@ export default function TrackerPage() {
     id: number;
     name: string;
   } | null>(null);
+  const [editCompany, setEditCompany] = useState<Company | null>(null);
+  const [savingEditCompany, setSavingEditCompany] = useState(false);
 
   // Add job sheet
   const [sheet, setSheet] = useState<AddJobSheet | null>(null);
@@ -70,6 +84,28 @@ export default function TrackerPage() {
     };
   }, []);
 
+  function touchCompany(id: number) {
+    setLastCompanyId(id);
+    try {
+      localStorage.setItem("jt:lastCompanyId", String(id));
+      localStorage.setItem("jt:lastTouchedAt", String(Date.now()));
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    if (loading) return;
+    if (!lastCompanyId) return;
+    // Avoid fighting user scroll: only auto-scroll when no active filters/search.
+    if (tierFilter !== "all" || statusFilter !== "all" || search !== "") return;
+    const el = document.querySelector(
+      `[data-company-id="${lastCompanyId}"]`,
+    ) as HTMLElement | null;
+    if (!el) return;
+    el.scrollIntoView({ block: "center" });
+  }, [lastCompanyId, loading, search, statusFilter, tierFilter]);
+
   const filtered = companies
     .filter((c) => {
       if (tierFilter !== "all" && Number(c.tier) !== tierFilter) return false;
@@ -85,12 +121,6 @@ export default function TrackerPage() {
       return true;
     })
     .sort((a, b) => a.tier - b.tier || a.sort_order - b.sort_order);
-
-  const totalJobs = companies.reduce((n, c) => n + c.jobs.length, 0);
-  const submittedCount = companies.reduce(
-    (n, c) => n + c.jobs.filter((j) => j.status === "submitted").length,
-    0,
-  );
 
   async function cycleJobStatus(job: Job) {
     const idx = STATUS_CYCLE.indexOf(job.status as Status);
@@ -135,6 +165,25 @@ export default function TrackerPage() {
     loadCompanies(false);
   }
 
+  async function saveCompanyEdits(data: {
+    id: number;
+    name: string;
+    url: string;
+    careers_url: string;
+    tier: number;
+    tag: string;
+  }) {
+    setSavingEditCompany(true);
+    await fetch("/api/companies", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    setEditCompany(null);
+    setSavingEditCompany(false);
+    loadCompanies(false);
+  }
+
   async function addJob(url: string, title: string, salary: string) {
     if (!sheet) return;
     setSaving(true);
@@ -154,13 +203,6 @@ export default function TrackerPage() {
     setSaving(false);
     setExpandedIds((prev) => new Set(prev).add(sheet.companyId));
     loadCompanies(false);
-  }
-
-  function openSheet(company: CompanyWithJobs) {
-    setSheet({ companyId: company.id, companyName: company.name });
-    if (!expandedIds.has(company.id)) {
-      setExpandedIds((prev) => new Set(prev).add(company.id));
-    }
   }
 
   function closeSheet() {
@@ -251,10 +293,12 @@ export default function TrackerPage() {
                 toggleExpand={toggleExpand}
                 isExpanded={isExpanded}
                 newCount={newCount}
-                openSheet={openSheet}
                 cycleJobStatus={cycleJobStatus}
                 setDeleteConfirm={setDeleteConfirm}
                 setDeleteCompanyConfirm={setDeleteCompanyConfirm}
+                onEditCompany={(c) => setEditCompany(c)}
+                isLastActive={lastCompanyId === company.id}
+                touchCompany={touchCompany}
               />
             );
           })}
@@ -411,6 +455,17 @@ export default function TrackerPage() {
         onSave={addCompany}
         saving={savingCompany}
       />
+
+      {/* Edit company sheet */}
+      {editCompany && (
+        <EditCompany
+          open={true}
+          company={editCompany}
+          onClose={() => setEditCompany(null)}
+          onSave={saveCompanyEdits}
+          saving={savingEditCompany}
+        />
+      )}
     </>
   );
 }

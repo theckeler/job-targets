@@ -53,3 +53,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create' }, { status: 500 })
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { id, name, url, careers_url, tier, tag, sort_order } = await req.json()
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 })
+    const { rows } = await sql`
+      UPDATE companies SET
+        name        = COALESCE(${name},        name),
+        url         = COALESCE(${url},         url),
+        careers_url = COALESCE(${careers_url}, careers_url),
+        tier        = COALESCE(${tier},        tier),
+        tag         = COALESCE(${tag},         tag),
+        sort_order  = COALESCE(${sort_order},  sort_order)
+      WHERE id = ${id}
+      RETURNING *
+    `
+    if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(rows[0])
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
+  }
+}
