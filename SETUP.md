@@ -40,6 +40,9 @@ Generate AUTH_SECRET:
 openssl rand -hex 32
 ```
 
+Optional (for iOS Shortcut capture via `/api/shortcuts/jobs`):
+- Set `SHORTCUTS_TOKEN` to a long random string (store in Vercel + local `.env.local`)
+
 ## 6. Set up Vercel Postgres
 
 1. Push to GitHub

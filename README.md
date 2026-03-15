@@ -31,6 +31,16 @@ Private job application tracker. Browse target companies, log job URLs from your
 4. Select company, hit Save → job is created as `status='new'`
 5. Keep browsing, then close the in-app browser tab and return to the tracker
 
+### Optional: iOS Shortcut (No Browser Switching)
+
+If your share-sheet shortcut is more reliable than the PWA share target, use iOS Shortcuts to POST directly into the DB.
+
+- Endpoint: `POST https://job-targets.vercel.app/api/shortcuts/jobs`
+- Auth header: `Authorization: Bearer <SHORTCUTS_TOKEN>`
+- JSON body: `{ "url": "https://..." }`
+
+The endpoint will best-effort scrape the job title/company and attach it to an existing company when it can. If it can't, it will file the job under an `Inbox` company.
+
 ---
 
 ## Quick Start (Local)
@@ -41,7 +51,7 @@ npm install
 
 # 2. Set up env
 cp .env.example .env.local
-# Fill in POSTGRES_*, TRACKER_PASSWORD, AUTH_SECRET
+# Fill in POSTGRES_*, TRACKER_PASSWORD, AUTH_SECRET (and optionally SHORTCUTS_TOKEN)
 
 # Generate AUTH_SECRET:
 openssl rand -hex 32
@@ -68,6 +78,7 @@ Make sure these env vars are set in Vercel dashboard:
 - `POSTGRES_*` — auto-injected by Neon integration
 - `TRACKER_PASSWORD` — your login password
 - `AUTH_SECRET` — same value as local (run `openssl rand -hex 32`)
+- `SHORTCUTS_TOKEN` — optional; required only for iOS Shortcut capture via `/api/shortcuts/jobs`
 
 ---
 

@@ -121,7 +121,7 @@ The manifest declares a `share_target` so the iOS/Android Share Sheet can route 
 2. Middleware checks for `tracker-auth` cookie matching `AUTH_SECRET` env var
 3. No match → redirect to `/login?from=<original path>`
 4. `/api/login` POST validates against `TRACKER_PASSWORD`, sets httpOnly cookie (30 days)
-5. Public paths: `/login`, `/api/login`
+5. Public paths: `/login`, `/api/login`, `/api/shortcuts/*` (token-protected inside the route)
 
 ---
 
@@ -132,6 +132,8 @@ Phone (browser) → /tracker → GET /api/companies → Neon DB
                            ← JSON: companies[] with jobs[] nested
 
 Phone adds job → POST /api/jobs → Neon DB → fetchData() refresh
+
+iOS Shortcut adds job → POST /api/shortcuts/jobs (Bearer token) → Neon DB
 
 Desktop AI session → Claude reads DB directly via psycopg2/connection string
                    → pulls status='new' jobs → presents for review
@@ -151,6 +153,7 @@ POSTGRES_DATABASE
 POSTGRES_PRISMA_URL        # Connection with pgbouncer settings
 TRACKER_PASSWORD           # Login password for the app
 AUTH_SECRET                # Random 32-byte hex string for cookie signing
+SHORTCUTS_TOKEN            # Optional; Bearer token for /api/shortcuts/jobs
 ```
 
 ---
