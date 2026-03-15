@@ -41,6 +41,8 @@ If your share-sheet shortcut is more reliable than the PWA share target, use iOS
 
 The endpoint will best-effort scrape the job title/company and attach it to an existing company when it can. If it can't, it will file the job under an `Inbox` company.
 
+Install link (in-app): `https://job-targets.vercel.app/shortcut`
+
 ---
 
 ## Quick Start (Local)

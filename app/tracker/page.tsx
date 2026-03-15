@@ -10,7 +10,7 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import Jobs from "@/src/components/ui/jobs";
 import { fetchData } from "@/src/util/fetchData";
-import { Plus, SearchX, SlidersHorizontal } from "lucide-react";
+import { Link2, Plus, SearchX, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const STATUS_CYCLE = ["new", "interested", "submitted", "skip"] as const;
@@ -261,6 +261,14 @@ export default function TrackerPage() {
                 <SlidersHorizontal />
               </Button>
             </div>
+
+            <Button
+              onClick={() => window.location.assign("/shortcut")}
+              className="ml-2 text-white/90"
+              title="iOS Shortcut"
+            >
+              <Link2 />
+            </Button>
 
             <Button
               onClick={() => setCompanySheetOpen(true)}
